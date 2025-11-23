@@ -1,0 +1,46 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Leaflet Tile Test Sandbox</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+
+  <style>
+    html, body { height:100%; margin:0; }
+    #map {
+      width:100%;
+      height:100%;
+      position:relative;   /* wichtig */
+      transform:none;      /* overrides */
+      object-fit:unset;    /* overrides */
+    }
+  </style>
+
+
+</head>
+<body>
+<div id="map"></div>
+<script>
+  const map = L.map('map').setView([52.5, 13.4], 11);
+
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom:19
+  }).addTo(map);
+
+L.tileLayer(
+  "https://pub-4f210cbdaa354727aed0c7ebd8e993a0.r2.dev/tiles_suit/{z}/{x}/{y}.png",
+  {
+    tms: true,            // WICHTIG — ohne das keine Tiles!
+    maxNativeZoom: 15,
+    maxZoom: 19,
+    opacity: 0.85,
+    crossOrigin: true
+  }
+).addTo(map);
+
+</script>
+</body>
+</html>

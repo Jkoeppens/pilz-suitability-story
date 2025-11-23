@@ -1,0 +1,1 @@
+Im November schießen in iNaturalist die Meldungen hoch. Etwa für den Parasol (Macrolepiota_procera) (…) 

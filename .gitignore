@@ -1,0 +1,27 @@
+# Cache & OS files
+__pycache__/
+.DS_Store
+
+# Local editors
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Data folders (not in Git)
+data/
+tiles/
+tiles_suit/
+
+# Optional: larger generated stuff
+export/
+output/
+*.tif
+*.tiff
+*.zip
+*.psd
+*.csv
+
+# Node modules (falls später JS tools)
+node_modules/
