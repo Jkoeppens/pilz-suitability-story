@@ -1,3 +1,9 @@
 ### Sattelitendaten
 
-Satteliten brauchen keine Wege, sie beobachten die Welt von oben und können messen, wie grün pflanzen sind oder wie feucht der Boden ist. Daraus kann man weitere Indikatoren berechnen: wie abwechslungsreich ist die Vegetation? Wie groß sind zusammenhängende Flächen?Im November schießen in iNaturalist die Meldungen hoch. Etwa für den Parasol (Macrolepiota_procera) (…) 
+Satelliten brauchen keine Wege.
+Sie beobachten Landschaften von oben — jeden Quadratmeter gleichmäßig.
+Dabei messen sie, wie grün Pflanzen sind, wie feucht Böden wirken,
+Aus diesen Signalen lassen sich weitere ökologische Muster ableiten:
+
+Wie vielfältig ist die Vegetation?
+Wie groß sind zusammenhängende Strukturen?

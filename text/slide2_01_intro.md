@@ -1,1 +1,1 @@
-Im November schießen in iNaturalist die Meldungen hoch. Etwa für den Parasol (Macrolepiota_procera) (…) 
+Auf iNaturalist taucht dann besonders häufig der Parasol (Macrolepiota procera) auf — als dichtes Muster von Punkten über Parks und Wäldern hinweg.

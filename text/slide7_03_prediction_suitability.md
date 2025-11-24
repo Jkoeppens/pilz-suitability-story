@@ -1,1 +1,1 @@
-Im November schießen in iNaturalist die Meldungen hoch. Etwa für den Parasol (Macrolepiota_procera) (…) 
+Eine Vorhersagekarte für den Parasol — pixelweise berechnet.

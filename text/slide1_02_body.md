@@ -1,2 +1,3 @@
-Kann man aus Satellitendaten vorhersagen, **wo** Pilze wachsen?  
-In diesem Scrollytelling versuche ich, genau das – am Beispiel des Parasols (*Macrolepiota procera*).
+Was früher nur Spaziergängern, Förstern oder Foren vorbehalten war, zeichnet sich heute auch aus dem Orbit ab: Muster aus Grün, Feuchte, Störungen und Wegen. Doch wie viel von dem, was wir über Pilze zu wissen glauben, ist wirklich Natur – und wie viel bloß ein Abbild unseres eigenen Suchverhaltens?
+
+Dieses Scrollytelling versucht, beides voneinander zu trennen. Und vorherzusagen, wo Pilze zu finden sind.

@@ -1,3 +1,7 @@
-# Kommt November, kommt Nebel, kommen Pilze.
+# Kommt November
+# kommt Nebel
+# kommen Pilze.
 
-Der November ist in Berlin Pilzzeit. Feuchte Luft, verrottendes Laub, kurze Tage – perfekte Bedingungen für Fruchtkörper.
+Und mit ihnen eine neue Möglichkeit:
+
+*Pilzvorkommen mithilfe von Satellitendaten vorherzusagen.*

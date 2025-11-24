@@ -1,3 +1,9 @@
-# Machine Learning Modell aus Beobachtungen & Sattelitendaten
+Ein Modell aus beiden Welten
 
-Ein Machine Learning-Modell kann lernen, welche Faktoren helfen, Fundpunkte von Parasolen und von Meisten zu unterscheiden
+Um Pilze wirklich vorhersagen zu können, braucht man zwei Arten von Informationen:
+
+1. Beobachtungen – wo Menschen tatsächlich etwas gefunden haben.
+2. Ökologische Signaturen – was Satelliten über Vegetation und Feuchte messen.
+
+Ein Machine-Learning-Modell kann diese Daten kombinieren
+und daraus lernen, welche Muster typisch für Fundorte sind.
