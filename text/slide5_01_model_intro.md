@@ -1,4 +1,4 @@
-Ein Modell aus beiden Welten
+# **Ein Modell aus beiden Welten**
 
 Um Pilze wirklich vorhersagen zu können, braucht man zwei Arten von Informationen:
 

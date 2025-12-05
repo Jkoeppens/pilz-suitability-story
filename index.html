@@ -22,6 +22,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 
+
 <body>
 <div id="app">
 
@@ -65,11 +66,9 @@
 
       <!-- Charts -->
       <div class="overlay-img overlay-charts">
-        <div class="charts-grid">
-          <figure class="chart"><img src="img/roc_growing.gif" alt=""></figure>
-          <figure class="chart"><img src="img/calibration_curve_final.gif" alt=""></figure>
-          <figure class="chart"><img src="img/probability_histogram_once.gif" alt=""></figure>
-          <figure class="chart"><img src="img/feature_importances_pause.gif" alt=""></figure>
+        <div class="chart-fullscreen-bg">
+          <iframe src="img/surrogate_tree.html"
+                  class="chart-iframe"></iframe>
         </div>
       </div>
     </div>
@@ -109,16 +108,16 @@
                data-md="slide3_03_meisen.md"
                data-stage-classes="show-parasol-grunewald show-meisen-grunewald"></article>
       
-      <article class="text-step spacing-long"
+      <article class="text-step spacing-xlong"
                data-md="slide3_04_bias_text.md"
                data-stage-classes="show-parasol-grunewald show-meisen-grunewald"></article>
     </section>
 
     <!-- STAGE 4 -->
     <section class="text-stage" data-media="4">
-      <article class="text-step spacing-short" data-md="slide4_01_signatures.md"></article>
+      <article class="text-step spacing-xlong" data-md="slide4_01_signatures.md"></article>
 
-      <article class="text-step spacing-short"
+      <article class="text-step spacing-long"
                data-md="slide5_01_model_intro.md"
                data-stage-classes="show-fundpunkte"></article>
 
@@ -133,7 +132,7 @@
 
       <article class="text-step spacing-short"
                data-md="slide7_02_prediction_explain.md"
-               data-stage-classes="show-fundpunkte"></article>
+                data-stage-classes="show-fundpunkte show-suitability"></article>
 
       <!-- LETZTER BLOCK: triggert Fade-out & Suitability-Fade-in -->
       <article class="text-step spacing-xlong"
@@ -142,6 +141,8 @@
     </section>
 
   </main>
+  <button id="exit-map">← Zurück zur Story</button>
+
 </div>
 
 
@@ -181,27 +182,36 @@ function initScrollStates() {
     });
   }
 
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (!e.isIntersecting) return;
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
 
-      const step = e.target;
+    const step = e.target;
 
-      steps.forEach(s => s.classList.remove("is-active"));
-      step.classList.add("is-active", "was-active");
+    steps.forEach(s => s.classList.remove("is-active"));
+    step.classList.add("is-active", "was-active");
 
-      const mediaId = step.closest(".text-stage").dataset.media;
-      activateMedia(mediaId);
+    const mediaId = step.closest(".text-stage").dataset.media;
+    activateMedia(mediaId);
 
-      const group = mediaGroups.find(g => g.dataset.media === mediaId);
-      if (!group) return;
+    const group = mediaGroups.find(g => g.dataset.media === mediaId);
+    if (!group) return;
 
-      const classes = (step.dataset.stageClasses || "")
-        .split(" ").filter(Boolean);
+    const classes = (step.dataset.stageClasses || "")
+      .split(" ")
+      .filter(Boolean);
 
-      classes.forEach(c => group.classList.add(c));
-    });
-  }, { threshold: 0.55 });
+    classes.forEach(c => group.classList.add(c));
+
+    // ⭐⭐⭐ THE FIX GOES HERE — AND ONLY HERE ⭐⭐⭐
+    if (classes.includes("show-suitability")) {
+      document.body.classList.add("mode-suit");
+    } else {
+      document.body.classList.remove("mode-suit");
+    }
+  });
+}, { threshold: 0.55 });
+
 
   steps.forEach(step => obs.observe(step));
 
@@ -272,7 +282,33 @@ observerSuit.observe(document.body, {
 document.addEventListener("DOMContentLoaded", () => {
   loadMarkdownIntoSteps();
   initScrollStates();
+
+  // Exit-Button für Suitability-Vollbild
+  const exitBtn = document.getElementById("exit-map");
+  if (exitBtn) {
+    exitBtn.addEventListener("click", () => {
+      // Vollbild-Modus wieder verlassen
+      document.body.classList.remove("mode-suit");
+
+      // optional: leicht nach oben scrollen, zurück zur letzten Story-Stage
+      const lastSuitStep = document.querySelector(
+        '.text-step[data-stage-classes*="show-suitability"]'
+      );
+      if (lastSuitStep) {
+        lastSuitStep.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    });
+  }
 });
+
+// EXIT-MAP BUTTON HANDLING
+document.getElementById("exit-map").addEventListener("click", () => {
+  document.body.classList.remove("mode-suit");
+
+  // optional: smooth scroll leicht zurück (kannst du löschen)
+  window.scrollBy({ top: -200, behavior: "smooth" });
+});
+
 </script>
 </body>
 </html>

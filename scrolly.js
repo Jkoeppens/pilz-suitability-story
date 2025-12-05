@@ -29,6 +29,15 @@ function hideAllLayers() {
 function showScene(scene) {
   hideAllLayers();
 
+  // NEU: Suitability-Mode für die Karte
+  // 👉 Falls deine Suitability-Karte in einer anderen Scene ist,
+  //    einfach die "4" unten anpassen.
+  if (scene === "4") {
+    document.body.classList.add("mode-suit");
+  } else {
+    document.body.classList.remove("mode-suit");
+  }
+
   switch (scene) {
     case "1":
       // Slide 1 – Wald + Pilz
@@ -59,15 +68,13 @@ function showScene(scene) {
       break;
 
     case "4":
-      // Slide 4 – Viererkarte
+      // Slide 4 – Viererkarte / Suitability (deine letzte Karte)
       if (layers.bg) {
-        layers.bg.src = "img/Sat_Berlin.png"; // außenrum Berlin
+        layers.bg.src = "img/Sat_Berlin.png";
         layers.bg.classList.remove("hidden");
       }
       if (layers.vierer) layers.vierer.classList.remove("hidden");
       break;
-
-    // TODO: später weitere scenes "5", "6" … für Modell, GIFs usw.
   }
 }
 

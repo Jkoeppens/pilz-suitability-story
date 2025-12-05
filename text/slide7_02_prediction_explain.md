@@ -1,1 +1,1 @@
-## I predict mushrooms.
+## I predict mushrooms!

@@ -31,8 +31,24 @@ html, body {
   position: absolute;
   inset: 0;
   opacity: 0;
-  pointer-events: none;     /* wird selektiv wieder eingeschaltet */
+  pointer-events: none;
   transition: opacity 1s ease;
+  z-index: 1; /* NEU: Ebene der Bühne */
+}
+
+.media-group .bg-suitability,
+.media-group #suit-map,
+.media-group #suit-map-inner {
+  z-index: 50 !important; /* Karte über alles in der Bühne */
+}
+
+.media-group .overlay-img {
+  z-index: 10; /* Overlays bleiben sichtbar, aber UNTER der Karte */
+}
+
+/* Suitability-Karte: gesamte Bühne wieder interaktiv machen */
+.media-group.show-suitability {
+  pointer-events: auto !important;
 }
 
 .media-group.is-visible {
@@ -51,10 +67,14 @@ html, body {
   object-fit: cover;
 }
 
+
+
 /* Overlays standardmäßig unsichtbar */
+/* Overlays standardmäßig unsichtbar UND nicht klickbar */
 .overlay-img {
   opacity: 0;
   transition: opacity 0.8s ease;
+  pointer-events: none;      /* <– neu */
 }
 
 /* Sichtbarkeit via State-Classes */
@@ -95,6 +115,7 @@ html, body {
   opacity: 0;
 }
 
+
 /* Leaflet-Container im Inneren der Suitability-Fläche */
 #suit-map-inner {
   position: relative;
@@ -102,34 +123,124 @@ html, body {
   height: 100%;
 }
 
-/* =========================================================
-   CHARTS (mittiger 4er Grid)
-   ======================================================= */
+/* Viererkarte nur ausblenden, wenn Suitability aktiv wird */
+.media-group.show-suitability .bg-viererkarte {
+  opacity: 0 !important;
+}
 
-.charts-grid {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
 
-  width: min(75vw, 1300px);
-  aspect-ratio: 2 / 1;
+/* Wenn Suitability aktiv ist → Charts wirklich vollständig deaktivieren */
+.media-group.show-suitability .overlay-charts,
+.media-group.show-suitability .chart-fullscreen-bg,
+.media-group.show-suitability .chart-frame {
+  pointer-events: none !important;
+}
+.media-group.show-suitability ~ #scroll-root {
+  pointer-events: none;
+  z-index: -1;
+}
 
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  gap: 1.8rem;
+.media-group.show-suitability ~ #scroll-root {
   pointer-events: none;
 }
 
-.chart img {
+.media-group.show-suitability #suit-map-inner {
+  pointer-events: auto;
+}
+/* =========================================================
+   SURROGATE-TREE-CHART (ein einzelnes iframe)
+   ======================================================= */
+
+/* Overlay-Ebene für die Charts auf Bühne 4 */
+.overlay-img.overlay-charts {
+  position: absolute;
+  inset: 0;     /* nimmt gesamte Bühne ein */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5000 !important;
+  transform: none !important;
+  top: 0;
+  left: 0;
+
+  pointer-events: none;  /* Overlay ignoriert Maus */
+}
+
+.chart-frame {
+  position: relative;
+  width: min(75vw, 1300px);
+  aspect-ratio: 2 / 1;
+  pointer-events: auto;
+
+  /* ✔ Glass Card wie .text-step */
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,0.38);
+
+  box-shadow:
+    0 10px 32px rgba(0,0,0,0.25),
+    0 2px 6px rgba(0,0,0,0.12);
+
+  padding: 2rem;      /* Abstand zum iframe */
+  box-sizing: border-box;
+}
+
+.chart-iframe {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  border: none;
   display: block;
-  border-radius: 18px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+
+  /* alte Regeln entfernen, Rahmen übernimmt jetzt chart-frame */
+  border-radius: 12px;
+  box-shadow: none;
+  background: transparent;
 }
+
+/* Hintergrund-Ebene für Charts */
+.chart-fullscreen-bg {
+  position: absolute;
+  inset: 0;                 /* nimmt vollen Raum der Bühne ein */
+  
+  background: rgba(255,255,255,0.65);  /* Halbtransparent */
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 5000;
+  pointer-events: auto;
+}
+
+/* iframe so groß wie möglich, aber unbeschnitten */
+.chart-iframe-full {
+  width: 90vw;
+  height: calc(90vw * 0.5);    /* grobes Seitenverhältnis */
+  max-width: 1400px;
+  max-height: 80vh;
+
+  border: none;
+  border-radius: 22px;
+
+  background: white;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+
+  object-fit: contain;
+}
+
+
+
+/* ... aber der Chart darin ist interaktiv */
+.chart-single {
+  width: 100%;
+  height: 100%;
+}
+
+/* Das eigentliche iframe mit dem Surrogate Tree */
 
 /* =========================================================
    SCROLL-LAYER MIT TEXT
@@ -140,7 +251,11 @@ html, body {
   z-index: 10;
   padding: 14vh 0 20vh;
 }
-
+/* Wenn die Suitability-Karte aktiv ist, liegt der Scroll-Text hinter der Karte */
+body.mode-suit #scroll-root {
+  z-index: -1 !important;
+  pointer-events: none !important;
+}
 /* Default-Abstand (Mittel) */
 .text-step {
   width: 66vw;
@@ -249,4 +364,60 @@ html, body {
     grid-template-columns: 1fr;
     grid-template-rows: auto;
   }
+}
+
+/* Wenn Suitability aktiv ist, soll der Scroll-Layer durchlässig werden */
+.media-group[data-media="4"].show-suitability ~ #scroll-root {
+  pointer-events: none !important;
+}
+
+.media-group[data-media="4"].show-suitability #suit-map-inner {
+  pointer-events: auto !important;
+}
+
+
+body.mode-suit #scroll-root {
+  pointer-events: none !important;
+  z-index: -1 !important;
+}
+
+body.mode-suit .overlay-charts,
+body.mode-suit .chart-fullscreen-bg,
+body.mode-suit .chart-frame {
+  pointer-events: none !important;
+  opacity: 0 !important;
+}
+
+body.mode-suit #suit-map-inner {
+  pointer-events: auto !important;
+}
+
+/* =========================================================
+   EXIT BUTTON FÜR SUITABILITY-MAP
+   ======================================================= */
+
+#exit-map {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 99999;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(0,0,0,0.25);
+  border-radius: 10px;
+  padding: 0.55rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* Button nur anzeigen, wenn Vollbild-Karte aktiv ist */
+body.mode-suit #exit-map {
+  opacity: 1;
+  pointer-events: auto;
 }
