@@ -1,1 +1,1 @@
-Auf iNaturalist taucht dann besonders häufig der Parasol (Macrolepiota procera) auf — als dichtes Muster von Punkten über Parks und Wäldern hinweg.
+Auf **iNaturalist** finden sich zahlreiche Meldungen des **Parasol in Berlin und Brandenburg**. Auf der Karte erscheinen sie als Streupunkte über Parks, Wäldern und dem weiteren Stadtgebiet.

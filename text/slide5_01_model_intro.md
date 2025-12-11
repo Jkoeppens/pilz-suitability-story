@@ -1,9 +1,5 @@
-# **Ein Modell aus beiden Welten**
+Für **Vorhersagen** braucht es beides: die **gemeldeten Funde** und die **ökologischen Muster in der Landschaft**.
+Die Punkte zeigen, wo Menschen Pilze entdeckt haben.
+Die Satellitendaten zeigen, wie grün, feucht oder strukturiert diese Orte sind.
 
-Um Pilze wirklich vorhersagen zu können, braucht man zwei Arten von Informationen:
-
-1. Beobachtungen – wo Menschen tatsächlich etwas gefunden haben.
-2. Ökologische Signaturen – was Satelliten über Vegetation und Feuchte messen.
-
-Ein Machine-Learning-Modell kann diese Daten kombinieren
-und daraus lernen, welche Muster typisch für Fundorte sind.
+Ein **Machine-Learning-Modell kombiniert diese Informationen** und erkennt, welche Signaturen typisch für Fundstellen sind

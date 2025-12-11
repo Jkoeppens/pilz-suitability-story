@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>Ich sage Pilze voraus</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Schrift: IBM Plex Sans -->
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Hauptstyles -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Markdown-Parser -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+</head>
+
+<body>
+
+  <div class="overlay-model hidden">
+    <div class="overlay-model-inner">
+      <iframe
+        src="surrogate_tree.html"
+        class="model-frame"
+        loading="lazy">
+      </iframe>
+    </div>
+  </div>
+
+<div id="app">
+
+  <!-- ======================================
+       STAGE-HINTERGRÜNDE + OVERLAYS
+  ======================================= -->
+  <div id="media-root">
+
+    <!-- ------- STAGE 1 ------- -->
+    <div class="media-group" data-stage="1">
+      <img src="img/Wald.png" class="bg-img" alt="">
+      <img src="img/Pilz.png" class="overlay-img overlay-pilz" alt="">
+    </div>
+
+    <!-- ------- STAGE 2 ------- -->
+    <div class="media-group" data-stage="2">
+      <img src="img/Sat_Berlin.png" class="bg-img" alt="">
+      <img src="img/Parasolfunde.png" class="overlay-img overlay-parasole" alt="">
+    </div>
+
+    <!-- ------- STAGE 3 ------- -->
+    <div class="media-group" data-stage="3">
+      <img src="img/Grunewald.png" class="bg-img" alt="">
+      <img src="img/Parasol_Grunewald.png" class="overlay-img overlay-parasol2" alt="">
+      <img src="img/Meisenfunde_Grunewald.png" class="overlay-img overlay-meisen" alt="">
+    </div>
+
+    <!-- ------- STAGE 4 ------- -->
+    <div class="media-group" data-stage="4">
+      <img class="bg-img" src="img/Satteliten_Viererkarte.png" alt="">
+
+      <img class="overlay-img overlay-fundpunkte"
+           src="img/Fundpunkte_all_berlin.png" alt="">
+
+      <div class="corner-label top-left">
+        Moran’s I<br><span>Vegetationsstruktur</span>
+      </div>
+      <div class="corner-label top-right">
+        Geary’s C<br><span>Kontrast</span>
+      </div>
+      <div class="corner-label bottom-left">
+        NDWI<br><span>Feuchte</span>
+      </div>
+      <div class="corner-label bottom-right">
+        NDVI<br><span>Vegetation</span>
+      </div>
+    </div>
+
+  </div> <!-- END media-root -->
+
+
+  <!-- ======================================
+       FULLSCREEN HTML OVERLAY (Surrogate Tree)
+       WICHTIG: außerhalb von #media-root!
+  ======================================= -->
+
+
+<!-- ======================================
+     FULLSCREEN PREDICTION MAP
+======================================= -->
+<div id="prediction-map" class="hidden">
+  
+  <button id="map-exit-btn">← Zurück</button>
+  <div class="map-legend">
+    <div class="legend-gradient"></div>
+    <div class="legend-labels">
+      <span>0</span>
+      <span>Eignung für Parasole</span>
+      <span>1</span>
+    </div>
+  </div>
+
+  <div id="suit-map-inner"></div> <!-- Leaflet map FULLSCREEN -->
+
+</div>
+
+  <!-- ======================================
+       INTRO (NICHT SCROLL-STORY)
+  ======================================= -->
+  <section id="intro">
+    <article class="intro-block" data-md="slide1_01_intro.md"></article>
+  </section>
+
+
+  <!-- ======================================
+       SCROLL-STORY REGION
+  ======================================= -->
+  <main id="scroll-root">
+
+    <!-- Intro Anchor -->
+    <article class="step step--invisible"
+             data-stage="1"
+             data-intro-step="true">
+    </article>
+
+    <!-- ======= STAGE 1 ======= -->
+    <article class="step step--invisible"
+             data-stage="1"
+             data-overlay="overlay-pilz">
+    </article>
+
+    <article class="step"
+             data-stage="1"
+             data-md="slide1_02_body.md">
+    </article>
+
+    <article class="step step--invisible"
+             data-stage="1"
+             style="height: 100vh;">
+    </article>
+
+
+    <!-- ======= STAGE 2 ======= -->
+    <article class="step step--invisible"
+             data-stage="2"
+             data-overlay="overlay-parasole">
+    </article>
+
+    <article class="step"
+             data-stage="2"
+             data-md="slide2_01_intro.md">
+    </article>
+
+    <article class="step"
+             data-stage="2"
+             data-md="slide2_02_parasol.md">
+    </article>
+
+
+    <!-- ======= STAGE 3 ======= -->
+    <article class="step step--invisible"
+             data-stage="3"
+             data-overlay="overlay-parasol2">
+    </article>
+
+    <article class="step"
+             data-stage="3"
+             data-md="slide3_01_intro.md">
+    </article>
+
+    <article class="step step--invisible"
+             data-stage="3"
+             data-overlay="overlay-meisen">
+    </article>
+
+    <article class="step"
+             data-stage="3"
+             data-md="slide3_03_meisen.md">
+    </article>
+
+    <article class="step"
+             data-stage="3"
+             data-md="slide3_04_bias_text.md">
+    </article>
+
+
+    <!-- ======= STAGE 4 ======= -->
+    <article class="step"
+             data-stage="4"
+             data-md="slide4_01_signatures.md">
+    </article>
+
+    <article class="step"
+            data-stage="4"
+            data-overlay="overlay-fundpunkte"
+            data-md="slide4_02_model_intro.md">
+    </article>
+
+    <article class="step"
+             data-stage="4"
+             data-md="slide4_02_model_intro.md">
+    </article>
+
+    <article class="step"
+             data-stage="4"
+             data-md="slide4_03_charts.md">
+    </article>
+
+    <article class="step"
+             data-stage="4"
+             data-md="slide4_04_prediction_intro.md">
+    </article>
+
+    <article class="step"
+             data-stage="4"
+             data-md="slide4_05_prediction_explain.md">
+    </article>
+
+  </main>
+
+</div> <!-- END app -->
+
+<script src="main.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>Ich sage Pilze voraus</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Finlandica -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Finlandica:wght@400;600;700&display=swap"
+        rel="stylesheet">
+
+  <!-- Layout CSS -->
+  <link rel="stylesheet" href="style_1.css" />
+
+  <!-- Markdown -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+
+
+<body>
+<div id="app">
+
+  <!-- =========================================================
+       FIXER MEDIEN-BACKGROUND
+       ======================================================= -->
+  <div id="media-root">
+
+    <!-- BÜHNE 1 -->
+    <div class="media-group" data-media="1">
+      <img src="img/Wald.png" class="bg-img" alt="">
+      <img src="img/Pilz.png" class="overlay-img overlay-pilz" alt="">
+    </div>
+
+    <!-- BÜHNE 2 -->
+    <div class="media-group" data-media="2">
+      <img src="img/Sat_Berlin.png" class="bg-img" alt="">
+      <img src="img/Parasolfunde.png" class="overlay-img overlay-parasolfunde" alt="">
+    </div>
+
+    <!-- BÜHNE 3 -->
+    <div class="media-group" data-media="3">
+      <img src="img/Grunewald.png" class="bg-img" alt="">
+      <img src="img/Parasol_Grunewald.png" class="overlay-img overlay-parasol-grunewald" alt="">
+      <img src="img/Meisenfunde_Grunewald.png" class="overlay-img overlay-meisen-grunewald" alt="">
+    </div>
+
+    <!-- BÜHNE 4 -->
+    <div class="media-group" data-media="4">
+
+      <!-- Suitability-Karte liegt GANZ unten, gleiche Geometrie wie Viererkarte -->
+      <div id="suit-map" class="bg-img bg-suitability">
+        <div id="suit-map-inner"></div>
+      </div>
+
+      <!-- Viererkarte darüber -->
+      <img src="img/Satteliten_Viererkarte.png" class="bg-img bg-viererkarte" alt="">
+
+      <!-- Fundpunkte -->
+      <img src="img/Fundpunkte_all_berlin.png" class="overlay-img overlay-fundpunkte" alt="">
+
+      <!-- Charts -->
+      <div class="overlay-img overlay-charts">
+        <div class="chart-fullscreen-bg">
+          <iframe src="img/surrogate_tree.html"
+                  class="chart-iframe"></iframe>
+        </div>
+      </div>
+    </div>
+
+  </div> <!-- /media-root -->
+
+
+  <!-- =========================================================
+       SCROLLBEREICH
+       ======================================================= -->
+  <main id="scroll-root">
+
+    <!-- STAGE 1 -->
+    <section class="text-stage" data-media="1">
+      <article class="text-step spacing-short" data-md="slide1_01_intro.md"></article>
+      <article class="text-step spacing-long"
+               data-md="slide1_02_body.md"
+               data-stage-classes="show-pilz"></article>
+    </section>
+
+    <!-- STAGE 2 -->
+    <section class="text-stage" data-media="2">
+      <article class="text-step spacing-short" data-md="slide2_01_intro.md"></article>
+      <article class="text-step spacing-long"
+               data-md="slide2_02_parasol.md"
+               data-stage-classes="show-parasolfunde"></article>
+    </section>
+
+    <!-- STAGE 3 -->
+    <section class="text-stage" data-media="3">
+      <article class="text-step spacing-long" data-md="slide3_01_intro.md"></article>
+      <article class="text-step spacing-long"
+               data-md="slide3_02_parasol.md"
+               data-stage-classes="show-parasol-grunewald"></article>
+     
+      <article class="text-step spacing-long"
+               data-md="slide3_03_meisen.md"
+               data-stage-classes="show-parasol-grunewald show-meisen-grunewald"></article>
+      
+      <article class="text-step spacing-xlong"
+               data-md="slide3_04_bias_text.md"
+               data-stage-classes="show-parasol-grunewald show-meisen-grunewald"></article>
+    </section>
+
+    <!-- STAGE 4 -->
+    <section class="text-stage" data-media="4">
+      <article class="text-step spacing-xlong" data-md="slide4_01_signatures.md"></article>
+
+      <article class="text-step spacing-long"
+               data-md="slide5_01_model_intro.md"
+               data-stage-classes="show-fundpunkte"></article>
+
+      <article class="text-step spacing-short"
+               data-md="slide6_01_charts.md"
+               data-stage-classes="show-fundpunkte show-charts"></article>
+
+      <!-- Hier sieht man noch Viererkarte + Fundpunkte + Charts -->
+      <article class="text-step spacing-xlong"
+               data-md="slide7_01_prediction_intro.md"
+               data-stage-classes="show-fundpunkte show-charts"></article>
+
+      <article class="text-step spacing-short"
+               data-md="slide7_02_prediction_explain.md"
+                data-stage-classes="show-fundpunkte show-suitability"></article>
+
+      <!-- LETZTER BLOCK: triggert Fade-out & Suitability-Fade-in -->
+      <article class="text-step spacing-xlong"
+               data-md="slide7_03_prediction_suitability.md"
+               data-stage-classes="show-suitability"></article>
+    </section>
+
+  </main>
+  <button id="exit-map">← Zurück zur Story</button>
+
+</div>
+
+
+<!-- =========================================================
+     SCRIPTS
+     ======================================================= -->
+<script>
+/* MARKDOWN LADEN */
+function loadMarkdownIntoSteps() {
+  document.querySelectorAll(".text-step").forEach(step => {
+    const file = step.dataset.md;
+    if (!file) return;
+
+    fetch(`text/${file}`)
+      .then(r => r.text())
+      .then(t => step.innerHTML = marked.parse(t))
+      .catch(() => step.innerHTML = `<p>Fehler beim Laden: ${file}</p>`);
+  });
+}
+
+
+/* SCROLL-LOGIK */
+function initScrollStates() {
+  const mediaGroups = [...document.querySelectorAll(".media-group")];
+  const steps =      [...document.querySelectorAll(".text-step")];
+
+  const STAGE_CLASSES = [
+    "show-pilz","show-parasolfunde","show-parasol-grunewald",
+    "show-meisen-grunewald","show-fundpunkte","show-charts","show-suitability"
+  ];
+
+  function activateMedia(id) {
+    mediaGroups.forEach(g => {
+      const visible = g.dataset.media === id;
+      g.classList.toggle("is-visible", visible);
+      STAGE_CLASSES.forEach(cls => g.classList.remove(cls));
+    });
+  }
+
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+
+    const step = e.target;
+
+    steps.forEach(s => s.classList.remove("is-active"));
+    step.classList.add("is-active", "was-active");
+
+    const mediaId = step.closest(".text-stage").dataset.media;
+    activateMedia(mediaId);
+
+    const group = mediaGroups.find(g => g.dataset.media === mediaId);
+    if (!group) return;
+
+    const classes = (step.dataset.stageClasses || "")
+      .split(" ")
+      .filter(Boolean);
+
+    classes.forEach(c => group.classList.add(c));
+
+    // ⭐⭐⭐ THE FIX GOES HERE — AND ONLY HERE ⭐⭐⭐
+    if (classes.includes("show-suitability")) {
+      document.body.classList.add("mode-suit");
+    } else {
+      document.body.classList.remove("mode-suit");
+    }
+  });
+}, { threshold: 0.55 });
+
+
+  steps.forEach(step => obs.observe(step));
+
+  // initialer Zustand
+  const firstMedia = steps[0].closest(".text-stage").dataset.media;
+  activateMedia(firstMedia);
+  steps[0].classList.add("is-active");
+}
+
+
+/* =========================================================
+   INTERAKTIVE SUITABILITY-KARTE
+   ========================================================= */
+let suitMapInitialized = false;
+let suitMap = null;
+
+function initSuitMap() {
+  if (suitMapInitialized) {
+    // falls schon existiert, nur Größe korrigieren
+    if (suitMap) suitMap.invalidateSize();
+    return;
+  }
+  suitMapInitialized = true;
+
+  suitMap = L.map("suit-map-inner", {
+    zoomControl: true,        // Zoom-Bedienelement anzeigen
+    attributionControl: false
+  }).setView([52.50, 13.40], 11);
+
+  // Hintergrund (OSM)
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19
+  }).addTo(suitMap);
+
+  // Suitability-Tiles aus Cloudflare R2
+  L.tileLayer(
+    "https://pub-4f210cbdaa354727aed0c7ebd8e993a0.r2.dev/tiles_suit/{z}/{x}/{y}.png",
+    {
+      tms: true,            // ganz wichtig für deine Tiles
+      crossOrigin: true,
+      maxNativeZoom: 15,
+      maxZoom: 19,
+      opacity: 0.85
+    }
+  ).addTo(suitMap);
+
+  // Karte nach erstem Rendern korrekt an Container anpassen
+  setTimeout(() => suitMap.invalidateSize(), 250);
+}
+
+
+/* Trigger Karte, sobald show-suitability aktiv wird */
+const observerSuit = new MutationObserver(() => {
+  const active = document.querySelector(
+    ".media-group[data-media='4'].is-visible.show-suitability"
+  );
+  if (active) initSuitMap();
+});
+
+observerSuit.observe(document.body, {
+  subtree: true,
+  attributes: true,
+  attributeFilter: ["class"]
+});
+
+
+/* INITIALISIERUNG */
+document.addEventListener("DOMContentLoaded", () => {
+  loadMarkdownIntoSteps();
+  initScrollStates();
+
+  // Exit-Button für Suitability-Vollbild
+  const exitBtn = document.getElementById("exit-map");
+  if (exitBtn) {
+    exitBtn.addEventListener("click", () => {
+      // Vollbild-Modus wieder verlassen
+      document.body.classList.remove("mode-suit");
+
+      // optional: leicht nach oben scrollen, zurück zur letzten Story-Stage
+      const lastSuitStep = document.querySelector(
+        '.text-step[data-stage-classes*="show-suitability"]'
+      );
+      if (lastSuitStep) {
+        lastSuitStep.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    });
+  }
+});
+
+// EXIT-MAP BUTTON HANDLING
+document.getElementById("exit-map").addEventListener("click", () => {
+  document.body.classList.remove("mode-suit");
+
+  // optional: smooth scroll leicht zurück (kannst du löschen)
+  window.scrollBy({ top: -200, behavior: "smooth" });
+});
+
+</script>
+</body>
+</html>

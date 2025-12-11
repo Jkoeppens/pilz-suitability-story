@@ -1,0 +1,1 @@
+Auf **iNaturalist** finden sich zahlreiche Meldungen des **Parasol in Berlin und Brandenburg**. Auf der Karte erscheinen sie als Streupunkte über Parks, Wäldern und dem weiteren Stadtgebiet.

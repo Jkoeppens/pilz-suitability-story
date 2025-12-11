@@ -1,0 +1,1 @@
+Im **Grunewald** fällt sofort auf: **die meisten Funde von Parasolen liegen in der Nähe von Wegen.** 

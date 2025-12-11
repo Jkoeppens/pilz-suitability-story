@@ -1,9 +1,10 @@
-### Sattelitendaten
+**Satelliten sind unabhängig vom Menschen**. Sie erfassen Landschaften gleichmäßig von oben und messen für jeden Quadratmeter,
+* wie **grün die Vegetation ist (NDVI)** und 
+* wie **feucht eine Fläche wirkt (NDWI).** 
 
-Satelliten brauchen keine Wege.
-Sie beobachten Landschaften von oben — jeden Quadratmeter gleichmäßig.
-Dabei messen sie, wie grün Pflanzen sind, wie feucht Böden wirken,
-Aus diesen Signalen lassen sich weitere ökologische Muster ableiten:
+Aus diesen Signalen lässt sich aber nicht nur der Zustand eines einzelnen Ortes ableiten, sondern auch die Struktur der Umgebung:
 
-Wie vielfältig ist die Vegetation?
-Wie groß sind zusammenhängende Strukturen?
+* Local **Moran’s I** zeigt, wie groß zusammenhängende Bereiche mit ähnlichen Werten sind, also ob **Vegetation oder Feuchte in größeren Clustern** auftreten.
+* Local **Geary’s C** zeigt dagegen, wie stark ein Ort von seinen Nachbarn abweicht, ob die **Landschaft kleinteilig und heterogen** ist.
+
+So entstehen **ökologische Signaturen**, die Vegetation, Feuchte und räumliche Struktur beschreiben. Sie sind unabhängig davon, wo Menschen unterwegs sind.

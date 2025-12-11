@@ -1,5 +1,1 @@
-### **Bei Citizen-Science-Daten ist oft unklar, was sie wirklich zeigen.**
-
-Sind die Funde dort, weil Pilze dort wachsen –
-
-oder weil dort einfach viele Menschen unterwegs sind?
+Im **Grunewald** fällt sofort auf: **die meisten Funde von Parasolen liegen in der Nähe von Wegen.** 

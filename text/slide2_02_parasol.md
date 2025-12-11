@@ -1,2 +1,1 @@
-Mit jedem Meldungseintrag wird der Wald sichtbarer:
-Ein saisonales Bild, das jedes Jahr wiederkehrt.
+Mit jeder Meldung zeichnet sich das Vorkommen des Parasol deutlicher ab. Über die Jahre entsteht daraus ein **wiederkehrendes saisonales Muste**r.

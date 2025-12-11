@@ -416,7 +416,7 @@ body.mode-suit #suit-map-inner {
   transition: opacity 0.3s ease;
 }
 
-/* Button nur anzeigen, wenn Vollbild-Karte aktiv ist */
+/* Button nur zeigen, wenn Suitability aktiv */
 body.mode-suit #exit-map {
   opacity: 1;
   pointer-events: auto;
