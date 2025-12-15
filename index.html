@@ -61,25 +61,53 @@
       <img src="img/Meisenfunde_Grunewald.png" class="overlay-img overlay-meisen" alt="">
     </div>
 
-    <!-- ------- STAGE 4 ------- -->
+    <!-- ------- STAGE 4 -------
+        Satellitenblick: Berlin + Fundpunkte
+    -------------------------- -->
     <div class="media-group" data-stage="4">
-      <img class="bg-img" src="img/Satteliten_Viererkarte.png" alt="">
+      <img src="img/Sat_Berlin.png" class="bg-img" alt="">
 
-      <img class="overlay-img overlay-fundpunkte"
-           src="img/Fundpunkte_all_berlin.png" alt="">
+      <img class="overlay-img overlay-fundpunkte-berlin_stg4"
+          src="img/Fundpunkte_all_berlin.png" alt="">
+    </div>
 
-      <div class="corner-label top-left">
-        Moran’s I<br><span>Vegetationsstruktur</span>
+    <!-- ------- STAGE 5 -------
+        Viererkarte: Daten & Signaturen
+    -------------------------- -->
+    <div class="media-group" data-stage="5">
+      <img src="img/Satteliten_Viererkarte.png" class="bg-img">
+
+      <img class="overlay-img overlay-fundpunkte-berlin"
+          src="img/Fundpunkte_all_berlin.png">
+
+      <!-- Legenden -->
+      <div class="corner-label top-left legend legend-moran">
+        <div class="legend-title">Local Moran</div>
+        <div class="legend-bar"></div>
+        <div class="legend-sub">lokale Clusterung</div>
       </div>
-      <div class="corner-label top-right">
-        Geary’s C<br><span>Kontrast</span>
+
+      <div class="corner-label top-right legend legend-geary">
+        <div class="legend-title">Local Geary</div>
+        <div class="legend-bar"></div>
+        <div class="legend-sub">lokaler Kontrast</div>
       </div>
-      <div class="corner-label bottom-left">
-        NDWI<br><span>Feuchte</span>
+
+      <div class="corner-label bottom-left legend legend-ndwi">
+        <div class="legend-title">NDWI</div>
+        <div class="legend-bar"></div>
+        <div class="legend-sub">Feuchte</div>
       </div>
-      <div class="corner-label bottom-right">
-        NDVI<br><span>Vegetation</span>
+
+      <div class="corner-label bottom-right legend legend-ndvi">
+        <div class="legend-title">NDVI</div>
+        <div class="legend-bar"></div>
+        <div class="legend-sub">Vegetation</div>
       </div>
+
+      <!-- optional -->
+      <img class="overlay-img overlay-fundpunkte-map"
+          src="img/Fundpunkte_all_berlin.png" alt="">
     </div>
 
   </div> <!-- END media-root -->
@@ -183,43 +211,50 @@
              data-stage="3"
              data-md="slide3_03_meisen.md">
     </article>
-
-    <article class="step"
-             data-stage="3"
-             data-md="slide3_04_bias_text.md">
-    </article>
-
-
+    
     <!-- ======= STAGE 4 ======= -->
+
     <article class="step"
              data-stage="4"
-             data-md="slide4_01_signatures.md">
+             data-overlay="overlay-fundpunkte-berlin_stg4"
+             data-md="slide04_01_bias_text.md">
     </article>
 
     <article class="step"
             data-stage="4"
-            data-overlay="overlay-fundpunkte"
-            data-md="slide4_02_model_intro.md">
+            data-md="slide4_02_signatures.md">
+    </article>
+
+    <!-- ======= STAGE 5 ======= -->
+
+    <article class="step"
+            data-stage="5"
+            data-md="slide5_02_signatures_Data.md">
     </article>
 
     <article class="step"
-             data-stage="4"
-             data-md="slide4_02_model_intro.md">
+            data-stage="5"
+            data-overlay="overlay-fundpunkte-berlin"
+            data-md="slide5_03_model_intro.md">
     </article>
 
     <article class="step"
-             data-stage="4"
-             data-md="slide4_03_charts.md">
+            data-stage="5"
+            data-overlay="overlay-fundpunkte-berlin"
+            data-model="true"
+            data-md="slide5_04_charts.md">
     </article>
 
     <article class="step"
-             data-stage="4"
-             data-md="slide4_04_prediction_intro.md">
+            data-stage="5"
+            data-model="true"
+            data-md="slide5_05_prediction_intro.md">
     </article>
 
     <article class="step"
-             data-stage="4"
-             data-md="slide4_05_prediction_explain.md">
+            data-stage="5"
+            data-model="true"
+            data-md="slide5_06_prediction_explain.md">
     </article>
 
   </main>

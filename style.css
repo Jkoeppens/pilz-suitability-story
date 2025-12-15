@@ -167,6 +167,76 @@ html, body {
   box-shadow: none !important;
 }
 
+/* =========================================================
+   MINI LEGENDS (Stage 4)
+========================================================= */
+
+.legend {
+  width: 220px;
+  line-height: 1.2;
+}
+
+.legend-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.legend-sub {
+  font-size: 1rem;
+  font-weight: 400;
+  opacity: 0.85;
+  margin-top: 6px;
+}
+
+/* Farbbalken */
+.legend-bar {
+  width: 100%;
+  height: 14px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25);
+}
+
+/* NDVI */
+.legend-ndvi .legend-bar {
+  background: linear-gradient(
+    to right,
+    #f2f2f2,
+    #a3c586,
+    #2f6b3a
+  );
+}
+
+/* NDWI */
+.legend-ndwi .legend-bar {
+  background: linear-gradient(
+    to right,
+    #f7fbff,
+    #6baed6,
+    #08519c
+  );
+}
+
+/* Moran’s I */
+.legend-moran .legend-bar {
+  background: linear-gradient(
+    to right,
+    #fee8c8,
+    #fdbb84,
+    #e34a33
+  );
+}
+
+/* Geary’s C */
+.legend-geary .legend-bar {
+  background: linear-gradient(
+    to right,
+    #f7f4f9,
+    #998ec3,
+    #542788
+  );
+}
+
 /* =======================================
    MODEL-OVERLAY — CLEAN FLOATING MODE
 ======================================= */

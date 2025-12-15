@@ -14,7 +14,7 @@ const EXTRA_STAGE_TAIL     = window.innerHeight * 0.5;
 const SHOW_MODEL_AT  = 15; // slide4_03_charts.md
 const HIDE_MODEL_AT  = 17; // slide4_05_prediction_explain.md
 // Prediction-Map: ab fixer Scroll-Schwelle
-const PREDICTION_SCROLL_THRESHOLD = 11000;
+const PREDICTION_SCROLL_THRESHOLD = 10500;
 
 /* =========================================================
    MARKDOWN LADEN
@@ -63,9 +63,13 @@ function autoSpacing() {
 function computeLayout() {
   const stepEls = [...document.querySelectorAll(".step")];
 
+  // -----------------------------
+  // 1. Steps erfassen
+  // -----------------------------
   steps = stepEls.map((el, i) => {
     const top = el.offsetTop;
     const height = el.offsetHeight;
+
     return {
       el,
       index: i,
@@ -75,31 +79,45 @@ function computeLayout() {
     };
   });
 
+  // -----------------------------
+  // 2. Media-Gruppen erfassen
+  // -----------------------------
   groups = [...document.querySelectorAll(".media-group")];
 
-  const raw = [];
+  // -----------------------------
+  // 3. Stage-Wechsel finden
+  // -----------------------------
+  const rawTransitions = [];
+
   for (let i = 0; i < steps.length - 1; i++) {
-    if (steps[i].stage !== steps[i + 1].stage) {
-      raw.push({
-        from: steps[i].stage,
-        to: steps[i + 1].stage,
-        fromCenter: steps[i].center,
-        toCenter: steps[i + 1].center
+    const a = steps[i];
+    const b = steps[i + 1];
+
+    if (a.stage !== b.stage) {
+      rawTransitions.push({
+        from: a.stage,
+        to: b.stage,
+        at: b.center
       });
     }
   }
 
-  transitions = raw.map(t => {
-    const span = t.toCenter - t.fromCenter;
-    return {
-      from: t.from,
-      to: t.to,
-      start: t.toCenter - span * STAGE_FADE_PORTION,
-      end: t.toCenter + EXTRA_STAGE_TAIL
-    };
-  });
+  // -----------------------------
+  // 4. Übergänge berechnen
+  //    (FIXE Fade-Länge!)
+  // -----------------------------
+  const FIXED_FADE_LENGTH = window.innerHeight * 1.2;
 
-  // Debug-Helfer
+  transitions = rawTransitions.map(t => ({
+    from: t.from,
+    to: t.to,
+    start: t.at - FIXED_FADE_LENGTH * STAGE_FADE_PORTION,
+    end: t.at + EXTRA_STAGE_TAIL
+  }));
+
+  // -----------------------------
+  // 5. Debug
+  // -----------------------------
   window._steps = steps;
   window._transitions = transitions;
   window._groups = groups;
@@ -148,14 +166,18 @@ function applyStageFade(scrollCenter) {
    CORNER LABELS
 ========================================================= */
 function applyCornerLabels(scrollCenter) {
-  const stage4 = document.querySelector('.media-group[data-stage="4"]');
-  if (!stage4) return;
+  const activeGroup =
+    groups.find(g => g.style.opacity > 0.5);
+  if (!activeGroup) return;
 
-  const labels = [...stage4.querySelectorAll(".corner-label")];
-  const firstStep4 = steps.find(s => s.stage === 4);
-  if (!firstStep4) return;
+  const labels = [...activeGroup.querySelectorAll(".corner-label")];
+  if (!labels.length) return;
 
-  const trigger = firstStep4.center - window.innerHeight * 0.3;
+  const stage = Number(activeGroup.dataset.stage);
+  const firstStep = steps.find(s => s.stage === stage);
+  if (!firstStep) return;
+
+  const trigger = firstStep.center - window.innerHeight * 0.3;
   const visible = scrollCenter > trigger;
 
   labels.forEach(l => (l.style.opacity = visible ? 1 : 0));
@@ -165,12 +187,19 @@ function applyCornerLabels(scrollCenter) {
    IMAGE OVERLAYS
 ========================================================= */
 function applyOverlays(scrollCenter) {
-  document.querySelectorAll(".overlay-img").forEach(o => (o.style.opacity = 0));
+  // alles zurücksetzen
+  document.querySelectorAll(".overlay-img").forEach(o => {
+    o.style.opacity = 0;
+  });
 
   const zones = {};
 
+  // Zonen sammeln
   steps.forEach(s => {
-    const overlays = (s.el.dataset.overlay || "").split(" ").filter(Boolean);
+    const overlays = (s.el.dataset.overlay || "")
+      .split(" ")
+      .filter(Boolean);
+
     if (!overlays.length) return;
 
     const start = s.center + window.innerHeight * 0.25;
@@ -181,21 +210,27 @@ function applyOverlays(scrollCenter) {
     else end = Infinity;
 
     overlays.forEach(cls => {
-      (zones[cls] ||= []).push({ start, end });
+      if (!zones[cls]) zones[cls] = [];
+      zones[cls].push({ start, end });
     });
   });
 
+  // Overlays anwenden
   for (const cls in zones) {
-    const img = document.querySelector("." + cls);
-    if (!img) continue;
+    const imgs = document.querySelectorAll("." + cls);
+    if (!imgs.length) continue;
 
     let opacity = 0;
+
     zones[cls].forEach(({ start, end }) => {
       const fadeLen = window.innerHeight * 0.25;
       const fadeEnd = start + fadeLen;
 
       if (scrollCenter >= start && scrollCenter <= fadeEnd) {
-        opacity = Math.max(opacity, (scrollCenter - start) / fadeLen);
+        opacity = Math.max(
+          opacity,
+          (scrollCenter - start) / fadeLen
+        );
       }
 
       if (scrollCenter > fadeEnd && scrollCenter <= end) {
@@ -203,7 +238,9 @@ function applyOverlays(scrollCenter) {
       }
     });
 
-    img.style.opacity = opacity;
+    imgs.forEach(img => {
+      img.style.opacity = opacity;
+    });
   }
 }
 
@@ -232,21 +269,40 @@ function applyStepVisibility(scrollCenter) {
 /* =========================================================
    SURROGATE TREE OVERLAY (Decision Tree)
 ========================================================= */
-function applyHtmlOverlay(activeIndex) {
+function applyHtmlOverlay(scrollCenter) {
   const overlay = document.querySelector(".overlay-model");
   if (!overlay) return;
 
-  if (activeIndex >= SHOW_MODEL_AT && activeIndex < HIDE_MODEL_AT) {
-    overlay.classList.add("active");
-    overlay.classList.remove("hidden");
-    overlay.style.opacity = 1;
-    overlay.style.pointerEvents = "auto";
-  } else {
-    overlay.classList.remove("active");
-    overlay.classList.add("hidden");
-    overlay.style.opacity = 0;
-    overlay.style.pointerEvents = "none";
-  }
+  let visible = false;
+
+  steps.forEach(s => {
+    // nur Steps, die das Modell explizit wollen
+    if (!s.el.dataset.model) return;
+
+    // Start: leicht nach dem Step-Zentrum
+    const start = s.center + window.innerHeight * 0.25;
+
+    // Ende: bis zum Ende des Stage-Fades
+    let end = start;
+    const t = transitions.find(tr => tr.from === s.stage);
+    if (t) {
+      end = Math.max(end, t.end);
+    } else {
+      end = Infinity;
+    }
+
+    // Sichtbarkeitsprüfung
+    if (scrollCenter >= start && scrollCenter <= end) {
+      visible = true;
+    }
+  });
+
+  // Anwendung
+  overlay.style.opacity = visible ? 1 : 0;
+  overlay.style.pointerEvents = visible ? "auto" : "none";
+
+  overlay.classList.toggle("active", visible);
+  overlay.classList.toggle("hidden", !visible);
 }
 
 /* =========================================================
@@ -326,7 +382,7 @@ function onScroll() {
 
   const activeIndex = applyStepVisibility(scrollCenter);
 
-  applyHtmlOverlay(activeIndex);
+  applyHtmlOverlay(scrollCenter);
   applyPredictionMap(scrollCenter);
   applyCornerLabels(scrollCenter);
 }
