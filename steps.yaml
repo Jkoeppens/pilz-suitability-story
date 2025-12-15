@@ -1,0 +1,46 @@
+window._steps.map((s, i) => ({
+  i,
+  stage: s.stage,
+  md: s.el.dataset.md
+}))
+Array(18) [ {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, … ]
+​
+0: Object { i: 0, stage: 1, md: undefined }
+​
+1: Object { i: 1, stage: 1, md: undefined }
+​
+2: Object { i: 2, stage: 1, md: "slide1_02_body.md" }
+​
+3: Object { i: 3, stage: 1, md: undefined }
+​
+4: Object { i: 4, stage: 2, md: undefined }
+​
+5: Object { i: 5, stage: 2, md: "slide2_01_intro.md" }
+​
+6: Object { i: 6, stage: 2, md: "slide2_02_parasol.md" }
+​
+7: Object { i: 7, stage: 3, md: undefined }
+​
+8: Object { i: 8, stage: 3, md: "slide3_01_intro.md" }
+​
+9: Object { i: 9, stage: 3, md: undefined }
+​
+10: Object { i: 10, stage: 3, md: "slide3_03_meisen.md" }
+​
+11: Object { i: 11, stage: 4, md: "slide04_01_bias_text.md" }
+​
+12: Object { i: 12, stage: 4, md: "slide4_02_signatures.md" }
+​
+13: Object { i: 13, stage: 5, md: "slide5_02_signatures_Data.md" }
+​
+14: Object { i: 14, stage: 5, md: "slide5_03_model_intro.md" }
+​
+15: Object { i: 15, stage: 5, md: "slide5_04_charts.md" }
+​
+16: Object { i: 16, stage: 5, md: "slide5_05_prediction_intro.md" }
+​
+17: Object { i: 17, stage: 5, md: "slide5_06_prediction_explain.md" }
+​
+length: 18
+​
+<prototype>: Array []
