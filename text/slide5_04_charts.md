@@ -1,12 +1,9 @@
-**Der Entscheidungsbaum zeigt, wie das Modell Schritt für Schritt entscheidet.**
+**Der Entscheidungsbaum zeigt konkrete Schwellenwerte, anhand derer das Modell unterscheidet.**
 
-Es nutzt Fundpunkte von Parasolen und Meisen, wobei Meisen näherungsweise für typische Beobachtungsorte von Menschen stehen.
+Jeder Knoten steht für einen Satellitenwert. Der Balken zeigt dessen Ausprägung, die Zahl darunter markiert den Punkt, an dem der Baum zwischen zwei Pfaden trennt.
 
-An jeder Verzweigung prüft der Baum einen Satellitenwert:
-Wie dicht ist die Vegetation?
-Tritt Feuchtigkeit in größeren Clustern auf?
-Wie heterogen ist die Umgebung?
+Je nachdem, auf welcher Seite dieser Schwelle ein Ort liegt, verzweigt sich der Pfad nach links oder rechts. So entstehen unterschiedliche Kombinationen aus Vegetation, Feuchte und räumlicher Struktur.
 
-Für **jeden dieser Werte setzt das Modell eine Schwelle.** Je nachdem, ob ein Ort darüber oder darunter liegt, folgt der Baum einem anderen Ast. **Am Ende landet jeder Ort in einem Blatt des Baumes.**
+Am unteren Rand des Baums stehen die **Blätter**. Sie sind farblich codiert und verweisen auf den **Suitability-Wert**.
 
-Jedes Blatt hat einen **Suitability-Wert: eine Einschätzung zwischen 0 und 1, wie typisch die Umweltbedingungen für einen Pilzfund sind**, im Vergleich zu Punkten, an denen vor allem Menschen unterwegs sind.
+Die Skala reicht von **0 bis 1**: **lila** steht für geringe, **gelb** für hohe Eignung als typische Pilzfundstelle.

@@ -1,1 +1,1 @@
-Im **Grunewald** fällt sofort auf: **die meisten Funde von Parasolen liegen in der Nähe von Wegen.** 
+Im **Grunewald** zeigt sich ein klares Muster: **Die meisten Funde von Parasolen liegen in der Nähe von Wegen.** 

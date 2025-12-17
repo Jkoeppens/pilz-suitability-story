@@ -2,4 +2,6 @@
 # kommt Nebel
 # kommen Pilze.
 
-Pilzsammler:innen melden jedes Jahr tausende Funde. Diese Beobachtungen zeigen, wann und wo bestimmte Arten wachsen. Die Frage ist: Lassen sich solche Muster auch in Satellitendaten erkennen und damit vielleicht Pilzvorkommen vorhersagen?
+> Jedes Jahr ziehen Menschen los, sammeln, fotografieren, melden. Tausende Pilzfunde landen in Datenbanken: Beobachtungen darüber, wann und wo bestimmte Arten auftauchen.
+
+> Aber ließen sich solche Muster auch anders lesen? Könnten Satelliten sie erkennen und vielleicht sogar vorhersagen, wo Pilze wachsen?

@@ -1,2 +1,3 @@
-## I predict mushrooms!
-– zumindest statistisch
+### **Pilze vorhersagen**
+
+mit Statistik statt mit Korb

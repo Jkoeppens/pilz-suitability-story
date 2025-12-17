@@ -1,1 +1,1 @@
-Mit jeder Meldung zeichnet sich das Vorkommen des Parasol deutlicher ab. Über die Jahre entsteht daraus ein **wiederkehrendes saisonales Muste**r.
+Mit jeder Meldung wird das Vorkommen des Parasol klarer. Über die Jahre zeigt sich ein **wiederkehrendes saisonales Muster**.

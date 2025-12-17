@@ -1,2 +1,3 @@
-**Citizen-Science-Daten spiegeln das Verhalten der Menschen wider.**
-Um diesen Bias herauszuschälen und die echten Muster der Arten zu sehen, braucht es **Daten, die nicht von Menschen abhängen.**
+**Citizen-Science-Daten zeigen, wo Menschen suchen, nicht unbedingt, wo Arten vorkommen.**
+
+Wer die tatsächlichen Muster der Arten verstehen will, braucht **einen Blick, der nicht vom menschlichen Suchen abhängt**.

@@ -1,3 +1,5 @@
-Das Gleiche passiert bei **Meisen**.
-Ökologisch haben sie nichts mit Pilzen zu tun, und eigentlich **sollten sie im ganzen Wald vorkommen**, sie sind **mobil und weit verbreitet.**
-Trotzdem liegen **die meisten Meldungen auch hier entlang der Wege**.
+Dasselbe Muster zeigt sich bei **Meisen**.
+
+Mit Pilzen haben sie ökologisch nichts zu tun. Sie sind mobil, weit verbreitet und eigentlich **überall im Wald zu erwarten.** 
+
+Trotzdem konzentrieren sich **auch hier die Meldungen entlang der Wege**.
