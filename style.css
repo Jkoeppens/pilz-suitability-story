@@ -266,14 +266,21 @@ html, body {
 
 /* Kein Card-Container mehr */
 .overlay-model-inner {
-  background: none !important;
-  padding: 0 !important;
-  border: none !important;
-  box-shadow: none !important;
+  background: rgba(245, 244, 238, 0.94);
+  padding: 2.5rem 3rem;
+
+  /* ganz leichte Abhebung */
+  box-shadow:
+    0 12px 28px rgba(0,0,0,0.18),
+    0 4px 10px rgba(0,0,0,0.12);
+
+  border-radius: 0; /* wichtig: kein Card-Gefühl */
 
   display: flex;
   justify-content: center;
   align-items: center;
+
+  max-width: 90vw;
 }
 
 /* Der Tree selbst darf leicht aussehen */
