@@ -347,28 +347,17 @@ function initSuitMap() {
 /* =========================================================
    PREDICTION MAP OVERLAY (zeige/verstecke #prediction-map)
 ========================================================= */
-function applyPredictionMap(scrollCenter) {
-  const pred    = document.querySelector("#prediction-map");
-  const overlay = document.querySelector(".overlay-model");
+function applyPredictionMapByStep(activeIndex) {
+  const pred = document.querySelector("#prediction-map");
   if (!pred) return;
 
-  const shouldShow = scrollCenter >= PREDICTION_SCROLL_THRESHOLD;
+  const show =
+    steps[activeIndex]?.el.dataset.trigger === "prediction-map";
 
-  if (shouldShow) {
-    pred.classList.add("active");
-    pred.classList.remove("hidden");
+  pred.classList.toggle("active", show);
+  pred.classList.toggle("hidden", !show);
 
-    // Surrogate-Overlay sicher ausblenden
-    if (overlay) {
-      overlay.classList.remove("active");
-      overlay.classList.add("hidden");
-      overlay.style.opacity = 0;
-      overlay.style.pointerEvents = "none";
-    }
-  } else {
-    pred.classList.remove("active");
-    pred.classList.add("hidden");
-  }
+  if (show) initSuitMap();
 }
 
 /* =========================================================
@@ -383,7 +372,7 @@ function onScroll() {
   const activeIndex = applyStepVisibility(scrollCenter);
 
   applyHtmlOverlay(scrollCenter);
-  applyPredictionMap(scrollCenter);
+  applyPredictionMapByStep(activeIndex);
   applyCornerLabels(scrollCenter);
 }
 
@@ -405,22 +394,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     onScroll();
   });
 
-  // EXIT BUTTON → Zurück in die Story
-  const exit = document.getElementById("map-exit-btn");
-  if (exit) {
-    exit.addEventListener("click", () => {
-      const pred = document.querySelector("#prediction-map");
-      if (pred) {
-        pred.classList.remove("active");
-        pred.classList.add("hidden");
-      }
+// EXIT BUTTON → Zurück zur Erklärung vor der Karte
+const exit = document.getElementById("map-exit-btn");
 
-      // ein Stück oberhalb der Schwelle landen
-      const offset = 600;
-      window.scrollTo({
-        top: PREDICTION_SCROLL_THRESHOLD - offset,
-        behavior: "smooth"
-      });
+if (exit) {
+  exit.addEventListener("click", () => {
+
+    const target = steps.find(
+      s => s.el.dataset.md === "slide5_06_prediction_explain.md"
+    );
+
+    if (!target) {
+      console.warn("prediction-explain Step nicht gefunden");
+      return;
+    }
+
+    // relativer Offset: 25 % Viewport-Höhe
+    window.scrollTo({
+      top: target.top - window.innerHeight * 0.25,
+      behavior: "smooth"
     });
-  }
+  });
+}
 });

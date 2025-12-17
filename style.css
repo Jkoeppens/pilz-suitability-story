@@ -167,6 +167,15 @@ html, body {
   box-shadow: none !important;
 }
 
+.step--spacer {
+  height: 120vh;   /* genug, um sicher aktiv zu werden */
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+
 /* =========================================================
    MINI LEGENDS (Stage 4)
 ========================================================= */

@@ -1,0 +1,187 @@
+{
+  "main": {
+    "id": "d31ac8840e5d004c",
+    "type": "split",
+    "children": [
+      {
+        "id": "a1524e51bde07f08",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "103f5b0b6b4f1f0f",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "slide5_05_prediction_intro.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "slide5_05_prediction_intro"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "f4095181b757c6ba",
+    "type": "split",
+    "children": [
+      {
+        "id": "d9d156da5ddfdd0c",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "478e79ac6c199fea",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "eddefe4307418433",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "1aa973c563485b94",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "618c551a288934b4",
+    "type": "split",
+    "children": [
+      {
+        "id": "2612c439c70a9652",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "207199184a649461",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "slide5_05_prediction_intro.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for slide5_05_prediction_intro"
+            }
+          },
+          {
+            "id": "5707ac5554d9bd0e",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "slide5_05_prediction_intro.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from slide5_05_prediction_intro"
+            }
+          },
+          {
+            "id": "b726b2d72d272088",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "f3b4fbf23d5602be",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "slide5_05_prediction_intro.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of slide5_05_prediction_intro"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false
+    }
+  },
+  "active": "103f5b0b6b4f1f0f",
+  "lastOpenFiles": [
+    "slide5_06_prediction_explain.md",
+    "slide5_05_prediction_intro.md",
+    "slide5_04_charts.md",
+    "slide5_03_model_intro.md",
+    "slide5_02_signatures_Data.md",
+    "slide4_02_signatures.md",
+    "slide04_01_bias_text.md",
+    "slide3_03_meisen.md",
+    "slide3_01_intro.md",
+    "slide2_02_parasol.md",
+    "slide2_01_intro.md",
+    "slide1_02_body.md",
+    "slide1_01_intro.md"
+  ]
+}
