@@ -2,6 +2,119 @@
    Crossfade-Stages • Overlays • Markdown • HTML-Overlay
 ========================================================= */
 
+/* =========================================================
+   LANGUAGE (URL ?lang=en | localStorage | browser fallback)
+   (muss VOR loadMarkdown stehen!)
+========================================================= */
+
+const SUPPORTED_LANGS = new Set(["de", "en"]);
+const LANG_STORAGE_KEY = "scrolly_lang";
+
+function getLangFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const lang = (params.get("lang") || "").toLowerCase();
+  return SUPPORTED_LANGS.has(lang) ? lang : null;
+}
+
+function getBrowserLang() {
+  const raw = (navigator.language || "de").toLowerCase();
+  const short = raw.split("-")[0];
+  return SUPPORTED_LANGS.has(short) ? short : "de";
+}
+
+function getInitialLang() {
+  // 1) URL wins (shareable links)
+  const urlLang = getLangFromUrl();
+  if (urlLang) return urlLang;
+
+  // 2) Stored preference
+  const stored = (localStorage.getItem(LANG_STORAGE_KEY) || "").toLowerCase();
+  if (SUPPORTED_LANGS.has(stored)) return stored;
+
+  // 3) Browser fallback
+  return getBrowserLang();
+}
+
+let currentLang = getInitialLang();
+
+function updateLangSwitchUI() {
+  const root = document.getElementById("lang-switch");
+  if (!root) return;
+
+  root.querySelectorAll(".lang-btn").forEach(btn => {
+    btn.classList.toggle("is-active", btn.dataset.lang === currentLang);
+  });
+}
+
+function setLang(nextLang, { updateUrl = true } = {}) {
+  if (!SUPPORTED_LANGS.has(nextLang)) return;
+
+  currentLang = nextLang;
+  localStorage.setItem(LANG_STORAGE_KEY, currentLang);
+
+  if (updateUrl) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", currentLang);
+    history.replaceState({}, "", url);
+  }
+
+  updateLangSwitchUI();
+}
+
+/* =========================================================
+   I18N (static UI strings via data-i18n)
+========================================================= */
+
+const I18N = {
+  de: {
+    legend_moran_sub: "lokale Clusterung",
+    legend_geary_sub: "lokaler Kontrast",
+    legend_ndwi_sub: "Feuchte",
+    legend_ndvi_sub: "Vegetation",
+    map_back: "← Zurück",
+    map_suitability_title: "Eignung für Parasole"
+  },
+  en: {
+    legend_moran_sub: "local clustering",
+    legend_geary_sub: "local contrast",
+    legend_ndwi_sub: "moisture",
+    legend_ndvi_sub: "vegetation",
+    map_back: "← Back",
+    map_suitability_title: "Parasol suitability"
+  }
+};
+
+function applyI18n() {
+  const dict = I18N[currentLang] || I18N.de;
+
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.dataset.i18n;
+    if (!key) return;
+    if (dict[key] == null) return; // fallback: leave existing HTML text
+    el.textContent = dict[key];
+  });
+
+  // Optional, but nice: keep <html lang="..."> in sync
+  document.documentElement.lang = currentLang;
+}
+
+/* =========================================================
+   NEW: Mount language switch into intro textbox
+========================================================= */
+function mountLangSwitchIntoIntro() {
+  const sw = document.getElementById("lang-switch");
+  const intro = document.querySelector("#intro .intro-block");
+  if (!sw || !intro) return;
+
+  if (sw.parentElement !== intro) {
+    intro.prepend(sw);
+  }
+}
+
+/* =========================================================
+   VARS
+========================================================= */
+
 let steps = [];
 let groups = [];
 let transitions = [];
@@ -26,7 +139,7 @@ async function loadMarkdown() {
     mdEls.map(async el => {
       if (!el.dataset.md) return;
       try {
-        const res = await fetch("text/" + el.dataset.md);
+        const res = await fetch(`text/${currentLang}/` + el.dataset.md);
         el.innerHTML = marked.parse(await res.text());
       } catch (e) {
         console.error("Fehler beim Laden:", el.dataset.md, e);
@@ -63,9 +176,7 @@ function autoSpacing() {
 function computeLayout() {
   const stepEls = [...document.querySelectorAll(".step")];
 
-  // -----------------------------
   // 1. Steps erfassen
-  // -----------------------------
   steps = stepEls.map((el, i) => {
     const top = el.offsetTop;
     const height = el.offsetHeight;
@@ -79,14 +190,10 @@ function computeLayout() {
     };
   });
 
-  // -----------------------------
   // 2. Media-Gruppen erfassen
-  // -----------------------------
   groups = [...document.querySelectorAll(".media-group")];
 
-  // -----------------------------
   // 3. Stage-Wechsel finden
-  // -----------------------------
   const rawTransitions = [];
 
   for (let i = 0; i < steps.length - 1; i++) {
@@ -102,10 +209,7 @@ function computeLayout() {
     }
   }
 
-  // -----------------------------
-  // 4. Übergänge berechnen
-  //    (FIXE Fade-Länge!)
-  // -----------------------------
+  // 4. Übergänge berechnen (FIXE Fade-Länge!)
   const FIXED_FADE_LENGTH = window.innerHeight * 1.2;
 
   transitions = rawTransitions.map(t => ({
@@ -115,9 +219,7 @@ function computeLayout() {
     end: t.at + EXTRA_STAGE_TAIL
   }));
 
-  // -----------------------------
   // 5. Debug
-  // -----------------------------
   window._steps = steps;
   window._transitions = transitions;
   window._groups = groups;
@@ -166,8 +268,7 @@ function applyStageFade(scrollCenter) {
    CORNER LABELS
 ========================================================= */
 function applyCornerLabels(scrollCenter) {
-  const activeGroup =
-    groups.find(g => g.style.opacity > 0.5);
+  const activeGroup = groups.find(g => g.style.opacity > 0.5);
   if (!activeGroup) return;
 
   const labels = [...activeGroup.querySelectorAll(".corner-label")];
@@ -227,10 +328,7 @@ function applyOverlays(scrollCenter) {
       const fadeEnd = start + fadeLen;
 
       if (scrollCenter >= start && scrollCenter <= fadeEnd) {
-        opacity = Math.max(
-          opacity,
-          (scrollCenter - start) / fadeLen
-        );
+        opacity = Math.max(opacity, (scrollCenter - start) / fadeLen);
       }
 
       if (scrollCenter > fadeEnd && scrollCenter <= end) {
@@ -276,28 +374,20 @@ function applyHtmlOverlay(scrollCenter) {
   let visible = false;
 
   steps.forEach(s => {
-    // nur Steps, die das Modell explizit wollen
     if (!s.el.dataset.model) return;
 
-    // Start: leicht nach dem Step-Zentrum
     const start = s.center + window.innerHeight * 0.25;
 
-    // Ende: bis zum Ende des Stage-Fades
     let end = start;
     const t = transitions.find(tr => tr.from === s.stage);
-    if (t) {
-      end = Math.max(end, t.end);
-    } else {
-      end = Infinity;
-    }
+    if (t) end = Math.max(end, t.end);
+    else end = Infinity;
 
-    // Sichtbarkeitsprüfung
     if (scrollCenter >= start && scrollCenter <= end) {
       visible = true;
     }
   });
 
-  // Anwendung
   overlay.style.opacity = visible ? 1 : 0;
   overlay.style.pointerEvents = visible ? "auto" : "none";
 
@@ -351,8 +441,7 @@ function applyPredictionMapByStep(activeIndex) {
   const pred = document.querySelector("#prediction-map");
   if (!pred) return;
 
-  const show =
-    steps[activeIndex]?.el.dataset.trigger === "prediction-map";
+  const show = steps[activeIndex]?.el.dataset.trigger === "prediction-map";
 
   pred.classList.toggle("active", show);
   pred.classList.toggle("hidden", !show);
@@ -381,11 +470,50 @@ function onScroll() {
 ========================================================= */
 document.addEventListener("DOMContentLoaded", async () => {
   await loadMarkdown();
+  applyI18n();
+
+  // move switch into intro textbox (so it scrolls away)
+  mountLangSwitchIntoIntro();
+
+  // Language UI initial state
+  updateLangSwitchUI();
 
   autoSpacing();
   computeLayout();
   initSuitMap();
   onScroll();
+
+  // Language switch click handler
+  const langSwitch = document.getElementById("lang-switch");
+  if (langSwitch) {
+    langSwitch.addEventListener("click", async (e) => {
+      const btn = e.target.closest(".lang-btn");
+      if (!btn) return;
+
+      const next = btn.dataset.lang;
+      if (!next || next === currentLang) return;
+
+      btn.blur();
+
+      const scrollY = window.scrollY;
+
+      setLang(next);
+
+      await loadMarkdown();
+      applyI18n();
+
+      // ensure switch stays inside intro after markdown re-render
+      mountLangSwitchIntoIntro();
+
+      autoSpacing();
+      computeLayout();
+      onScroll();
+
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: scrollY, left: 0, behavior: "auto" });
+      });
+    });
+  }
 
   window.addEventListener("scroll", onScroll);
   window.addEventListener("resize", () => {
@@ -394,26 +522,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     onScroll();
   });
 
-// EXIT BUTTON → Zurück zur Erklärung vor der Karte
-const exit = document.getElementById("map-exit-btn");
+  // EXIT BUTTON → Zurück zur Erklärung vor der Karte
+  const exit = document.getElementById("map-exit-btn");
 
-if (exit) {
-  exit.addEventListener("click", () => {
+  if (exit) {
+    exit.addEventListener("click", () => {
+      const target = steps.find(
+        s => s.el.dataset.md === "slide5_06_prediction_explain.md"
+      );
 
-    const target = steps.find(
-      s => s.el.dataset.md === "slide5_06_prediction_explain.md"
-    );
+      if (!target) {
+        console.warn("prediction-explain Step nicht gefunden");
+        return;
+      }
 
-    if (!target) {
-      console.warn("prediction-explain Step nicht gefunden");
-      return;
-    }
-
-    // relativer Offset: 25 % Viewport-Höhe
-    window.scrollTo({
-      top: target.top - window.innerHeight * 0.25,
-      behavior: "smooth"
+      window.scrollTo({
+        top: target.top - window.innerHeight * 0.25,
+        behavior: "smooth"
+      });
     });
-  });
-}
+  }
 });

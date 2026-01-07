@@ -14,12 +14,12 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <link
-  rel="stylesheet"
-  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-/>
-<script
-  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-</script>
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+  </script>
 
 </head>
 
@@ -84,25 +84,25 @@
       <div class="corner-label top-left legend legend-moran">
         <div class="legend-title">Local Moran</div>
         <div class="legend-bar"></div>
-        <div class="legend-sub">lokale Clusterung</div>
+        <div class="legend-sub" data-i18n="legend_moran_sub">lokale Clusterung</div>
       </div>
 
       <div class="corner-label top-right legend legend-geary">
         <div class="legend-title">Local Geary</div>
         <div class="legend-bar"></div>
-        <div class="legend-sub">lokaler Kontrast</div>
+        <div class="legend-sub" data-i18n="legend_geary_sub">lokaler Kontrast</div>
       </div>
 
       <div class="corner-label bottom-left legend legend-ndwi">
         <div class="legend-title">NDWI</div>
         <div class="legend-bar"></div>
-        <div class="legend-sub">Feuchte</div>
+        <div class="legend-sub" data-i18n="legend_ndwi_sub">Feuchte</div>
       </div>
 
       <div class="corner-label bottom-right legend legend-ndvi">
         <div class="legend-title">NDVI</div>
         <div class="legend-bar"></div>
-        <div class="legend-sub">Vegetation</div>
+        <div class="legend-sub" data-i18n="legend_ndvi_sub">Vegetation</div>
       </div>
 
       <!-- optional -->
@@ -124,12 +124,12 @@
 ======================================= -->
 <div id="prediction-map" class="hidden">
   
-  <button id="map-exit-btn">← Zurück</button>
+  <button id="map-exit-btn" data-i18n="map_back">← Zurück</button>
   <div class="map-legend">
     <div class="legend-gradient"></div>
     <div class="legend-labels">
       <span>0</span>
-      <span>Eignung für Parasole</span>
+      <span data-i18n="map_suitability_title">Eignung für Parasole</span>
       <span>1</span>
     </div>
   </div>
@@ -142,7 +142,9 @@
        INTRO (NICHT SCROLL-STORY)
   ======================================= -->
   <section id="intro">
-    <article class="intro-block" data-md="slide1_01_intro.md"></article>
+    <article class="intro-block">
+      <div id="intro-md" data-md="slide1_01_intro.md"></div>
+    </article>
   </section>
 
 
@@ -268,4 +270,12 @@
 <script src="main.js"></script>
 
 </body>
+
+<!-- Language Switch (fixed top-right) -->
+<div id="lang-switch" class="lang-switch" aria-label="Language switch">
+  <button type="button" class="lang-btn" data-lang="de">DE</button>
+  <span class="lang-sep">/</span>
+  <button type="button" class="lang-btn" data-lang="en">EN</button>
+</div>
+
 </html>

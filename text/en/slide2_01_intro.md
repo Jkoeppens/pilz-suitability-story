@@ -1,0 +1,1 @@
+There are **numerous reports of the parasol mushroom in Berlin and Brandenburg** on **iNaturalist**. On the map, they appear as locations in parks, forests, and the wider urban area.
