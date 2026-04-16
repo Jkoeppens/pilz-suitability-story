@@ -17,8 +17,6 @@ tiles_suit/
 # Optional: larger generated stuff
 export/
 output/
-*.tif
-*.tiff
 *.zip
 *.psd
 *.csv
