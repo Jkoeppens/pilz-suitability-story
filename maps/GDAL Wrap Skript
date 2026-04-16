@@ -1,0 +1,9 @@
+gdalwarp \
+  -b 10 \
+  -s_srs EPSG:32633 \
+  -t_srs EPSG:4326 \
+  -tr 0.001 0.001 \
+  -co COMPRESS=DEFLATE \
+  -co PREDICTOR=2 \
+  /Volumes/Data/iNaturalist/processed/berlin/CLIMATOLOGY_berlin_MONTH_07.tif \
+  /Users/jakobkoppermann/Coding/pilz-suitability-story/maps/NDVI_Geary_wgs84.tif

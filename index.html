@@ -13,13 +13,15 @@
   <!-- Markdown-Parser -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-  </script>
+  <!-- MapLibre GL JS -->
+  <link href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css" rel="stylesheet">
+  <script src="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js"></script>
+
+  <!-- COG-Protokoll für GeoTIFF-Streaming (benötigt MapLibre ≥ 4.1) -->
+  <script src="https://unpkg.com/maplibre-cog-protocol/dist/index.js"></script>
+
+  <!-- MapTiler API-Key — hier eintragen -->
+  <script>window.MAPTILER_KEY = 'G5GPJB5Uc1WS11NDAPWV';</script>
 
 </head>
 
@@ -37,105 +39,60 @@
 
 <div id="app">
 
+  <!-- Fixed MapLibre map — immer im Hintergrund -->
+  <div id="map"></div>
+
+  <!-- 2×2 Raster-Quad-Karte für Stage 4 -->
+  <div id="quad-root" class="hidden">
+    <div id="quad-tl" class="quad-cell"></div><!-- oben links:  Local Moran -->
+    <div id="quad-tr" class="quad-cell"></div><!-- oben rechts: Local Geary -->
+    <div id="quad-bl" class="quad-cell"></div><!-- unten links: NDWI        -->
+    <div id="quad-br" class="quad-cell"></div><!-- unten rechts: NDVI       -->
+
+    <!-- Eck-Legenden -->
+    <div class="quad-label tl">
+      <span class="ql-title">Local Moran</span>
+      <div class="ql-bar ql-bar--moran"></div>
+      <span class="ql-sub" data-i18n="legend_moran_sub">lokale Clusterung</span>
+    </div>
+    <div class="quad-label tr">
+      <span class="ql-title">Local Geary</span>
+      <div class="ql-bar ql-bar--geary"></div>
+      <span class="ql-sub" data-i18n="legend_geary_sub">lokaler Kontrast</span>
+    </div>
+    <div class="quad-label bl">
+      <span class="ql-title">NDWI</span>
+      <div class="ql-bar ql-bar--ndwi"></div>
+      <span class="ql-sub" data-i18n="legend_ndwi_sub">Feuchte</span>
+    </div>
+    <div class="quad-label br">
+      <span class="ql-title">NDVI</span>
+      <div class="ql-bar ql-bar--ndvi"></div>
+      <span class="ql-sub" data-i18n="legend_ndvi_sub">Vegetation</span>
+    </div>
+  </div>
+
   <!-- ======================================
-       STAGE-HINTERGRÜNDE + OVERLAYS
+       STAGE 1: Wald + Pilz (PNG-Überblendung)
+       Liegt über der Karte, blendet beim
+       Übergang zu Stage 2 aus.
   ======================================= -->
   <div id="media-root">
-
-    <!-- ------- STAGE 1 ------- -->
     <div class="media-group" data-stage="1">
       <img src="img/Wald.png" class="bg-img" alt="">
       <img src="img/Pilz.png" class="overlay-img overlay-pilz" alt="">
     </div>
-
-    <!-- ------- STAGE 2 ------- -->
-    <div class="media-group" data-stage="2">
-      <img src="img/Sat_Berlin.png" class="bg-img" alt="">
-      <img src="img/Parasolfunde.png" class="overlay-img overlay-parasole" alt="">
-    </div>
-
-    <!-- ------- STAGE 3 ------- -->
-    <div class="media-group" data-stage="3">
-      <img src="img/Grunewald.png" class="bg-img" alt="">
-      <img src="img/Parasol_Grunewald.png" class="overlay-img overlay-parasol2" alt="">
-      <img src="img/Meisenfunde_Grunewald.png" class="overlay-img overlay-meisen" alt="">
-    </div>
-
-    <!-- ------- STAGE 4 -------
-        Satellitenblick: Berlin + Fundpunkte
-    -------------------------- -->
-    <div class="media-group" data-stage="4">
-      <img src="img/Sat_Berlin.png" class="bg-img" alt="">
-
-      <img class="overlay-img overlay-fundpunkte-berlin_stg4"
-          src="img/Fundpunkte_all_berlin.png" alt="">
-    </div>
-
-    <!-- ------- STAGE 5 -------
-        Viererkarte: Daten & Signaturen
-    -------------------------- -->
-    <div class="media-group" data-stage="5">
-      <img src="img/Satteliten_Viererkarte.png" class="bg-img">
-
-      <img class="overlay-img overlay-fundpunkte-berlin"
-          src="img/Fundpunkte_all_berlin.png">
-
-      <!-- Legenden -->
-      <div class="corner-label top-left legend legend-moran">
-        <div class="legend-title">Local Moran</div>
-        <div class="legend-bar"></div>
-        <div class="legend-sub" data-i18n="legend_moran_sub">lokale Clusterung</div>
-      </div>
-
-      <div class="corner-label top-right legend legend-geary">
-        <div class="legend-title">Local Geary</div>
-        <div class="legend-bar"></div>
-        <div class="legend-sub" data-i18n="legend_geary_sub">lokaler Kontrast</div>
-      </div>
-
-      <div class="corner-label bottom-left legend legend-ndwi">
-        <div class="legend-title">NDWI</div>
-        <div class="legend-bar"></div>
-        <div class="legend-sub" data-i18n="legend_ndwi_sub">Feuchte</div>
-      </div>
-
-      <div class="corner-label bottom-right legend legend-ndvi">
-        <div class="legend-title">NDVI</div>
-        <div class="legend-bar"></div>
-        <div class="legend-sub" data-i18n="legend_ndvi_sub">Vegetation</div>
-      </div>
-
-      <!-- optional -->
-      <img class="overlay-img overlay-fundpunkte-map"
-          src="img/Fundpunkte_all_berlin.png" alt="">
-    </div>
-
-  </div> <!-- END media-root -->
-
-
-  <!-- ======================================
-       FULLSCREEN HTML OVERLAY (Surrogate Tree)
-       WICHTIG: außerhalb von #media-root!
-  ======================================= -->
-
-
-<!-- ======================================
-     FULLSCREEN PREDICTION MAP
-======================================= -->
-<div id="prediction-map" class="hidden">
-  
-  <button id="map-exit-btn" data-i18n="map_back">← Zurück</button>
-  <div class="map-legend">
-    <div class="legend-gradient"></div>
-    <div class="legend-labels">
-      <span>0</span>
-      <span data-i18n="map_suitability_title">Eignung für Parasole</span>
-      <span>1</span>
-    </div>
   </div>
 
-  <div id="suit-map-inner"></div> <!-- Leaflet map FULLSCREEN -->
 
+<!-- Legende für Eignungskarte — erscheint wenn prediction-map aktiv -->
+<div id="suit-legend" class="map-legend hidden">
+  <div class="legend-gradient"></div>
+  <div class="legend-labels">
+    <span>0</span>
+    <span data-i18n="map_suitability_title">Eignung für Parasole</span>
+    <span>1</span>
+  </div>
 </div>
 
   <!-- ======================================

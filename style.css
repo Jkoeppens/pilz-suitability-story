@@ -17,44 +17,52 @@ html, body {
 }
 
 /* =========================================================
-   FIXED MEDIA ROOT (alle Karten & Overlays)
+   FIXED MAPLIBRE MAP
+========================================================= */
+#map {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+/* =========================================================
+   STAGE 1 PNG OVERLAY (Wald / Pilz)
+   z-index 1 → liegt über Karte, blendet per JS aus
 ========================================================= */
 #media-root {
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: 1;
   overflow: hidden;
+  pointer-events: none;
 }
 
-/* Jede Stage */
 .media-group {
   position: absolute;
   inset: 0;
-  opacity: 0;                 /* JS steuert fade */
+  opacity: 0;
   pointer-events: none;
   transition: none !important;
 }
 
-/* Hintergrundbilder */
 .bg-img {
   position: absolute;
-  top: 50%; 
+  top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 100%; 
+  width: 100%;
   height: 100%;
   object-fit: cover;
   opacity: 1 !important;
   pointer-events: none;
 }
 
-/* Overlay-Bilder (Fundpunkte etc.) */
 .overlay-img {
   position: absolute;
-  top: 50%; 
+  top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 100%; 
+  width: 100%;
   height: 100%;
   object-fit: cover;
   opacity: 0;
@@ -62,33 +70,79 @@ html, body {
   transition: none !important;
 }
 
+
 /* =========================================================
-   CORNER LABELS für Stage 4 etc.
+   2×2 RASTER-QUAD-MAP (Stage 4)
+   Eine Satelliten-Basemap (#map, z-index 0) liegt darunter.
+   Vier volle Karten werden per clip-path auf je ein Viertel
+   des Bildschirms beschnitten.
 ========================================================= */
-.corner-label {
+#quad-root {
+  position: fixed;
+  inset: 0;
+  z-index: 2;           /* über #media-root (z-index 1) */
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.5s ease;
+}
+
+#quad-root.hidden { opacity: 0; }
+
+/* Jede Zelle füllt den gesamten Viewport —
+   clip-path übernimmt die Quadranten-Zuweisung */
+.quad-cell {
   position: absolute;
-  z-index: 5;
-  color: white;
+  inset: 0;
+  overflow: hidden;
+}
+
+#quad-tl { clip-path: polygon(0%   0%,  50%  0%,  50%  50%, 0%   50%); }
+#quad-tr { clip-path: polygon(50%  0%,  100% 0%,  100% 50%, 50%  50%); }
+#quad-bl { clip-path: polygon(0%   50%, 50%  50%, 50%  100%, 0%   100%); }
+#quad-br { clip-path: polygon(50%  50%, 100% 50%, 100% 100%, 50%  100%); }
+
+/* Kreuz-Trennlinien */
+#quad-root::before,
+#quad-root::after {
+  content: '';
+  position: absolute;
+  background: rgba(255,255,255,0.45);
+  z-index: 10;
+  pointer-events: none;
+}
+#quad-root::before { top: 50%;  left: 0;   right: 0;  height: 2px; }
+#quad-root::after  { left: 50%; top: 0; bottom: 0; width:  2px; }
+
+/* Eck-Labels */
+.quad-label {
+  position: absolute;
+  z-index: 11;
+  color: #fff;
   font-family: 'IBM Plex Sans', sans-serif;
-  font-size: 1.6rem;
-  font-weight: 600;
-  text-shadow: 0 0 4px rgba(0,0,0,0.8);
-  opacity: 0;                     /* JS kann fade steuern */
-  transition: opacity 0.6s ease-out;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.85);
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
+.quad-label.tl { top: 14px; left: 14px; }
+.quad-label.tr { top: 14px; right: 14px; align-items: flex-end; }
+.quad-label.bl { bottom: 14px; left: 14px; }
+.quad-label.br { bottom: 14px; right: 14px; align-items: flex-end; }
 
-/* Ecken definieren */
-.corner-label.top-left     { top: 2%; left: 2%; }
-.corner-label.top-right    { top: 2%; right: 2%; }
-.corner-label.bottom-left  { bottom: 2%; left: 2%; }
-.corner-label.bottom-right { bottom: 2%; right: 2%; }
+.ql-title { font-size: 1.05rem; font-weight: 600; }
+.ql-sub   { font-size: 0.8rem;  opacity: 0.85; }
 
-/* Subtitel kleiner */
-.corner-label span {
-  font-weight: 400;
-  font-size: 1.1rem;
-  opacity: 0.9;
+.ql-bar {
+  width: 90px;
+  height: 7px;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2);
 }
+.ql-bar--moran { background: linear-gradient(to right, #fee8c8, #fdbb84, #e34a33); }
+.ql-bar--geary { background: linear-gradient(to right, #f7f4f9, #998ec3, #542788); }
+.ql-bar--ndwi  { background: linear-gradient(to right, #f7fbff, #6baed6, #08519c); }
+.ql-bar--ndvi  { background: linear-gradient(to right, #f2f2f2, #a3c586, #2f6b3a); }
 
 /* =========================================================
    INTRO BLOCK
@@ -303,73 +357,14 @@ html, body {
 }
 
 /* =========================================================
-   PREDICTION MAP FULLSCREEN VIEW
+   SUITABILITY LEGEND (fixed bottom-right, shown via JS)
 ========================================================= */
 
-#prediction-map {
-  position: fixed !important;
-  inset: 0;
-  background: #000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.4s ease;
-
-  z-index: 2000 !important; /* über Leaflet */
-}
-
-#prediction-map.active {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.map-inner {
-  position: relative;
-  width: 90vw;
-  height: 90vh;
-  overflow: hidden;
-  border-radius: 12px;
-  background: #111;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  z-index: 3000; /* Map-Container über Leaflet */
-}
-
-#prediction-image {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  cursor: grab;
-}
-
-/* Exit Button */
-#map-exit-btn {
-  position: absolute;
-  top: 18px;
+#suit-legend {
+  position: fixed;
+  bottom: 40px;
   right: 18px;
-
-  background: rgba(255,255,255,0.85);
-  border: none;
-  border-radius: 6px;
-
-  padding: 10px 14px;
-  font-size: 15px;
-  cursor: pointer;
-  backdrop-filter: blur(4px);
-
-  z-index: 4000 !important;
-}
-
-/* Legend */
-.map-legend {
-  position: absolute;
-  bottom: 18px;
-  right: 18px;
+  z-index: 100;
 
   width: 220px;
   background: rgba(0,0,0,0.55);
@@ -378,7 +373,13 @@ html, body {
   backdrop-filter: blur(4px);
   color: white;
 
-  z-index: 4000 !important;
+  opacity: 1;
+  transition: opacity 0.4s ease;
+}
+
+#suit-legend.hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .legend-gradient {
@@ -398,12 +399,6 @@ html, body {
   justify-content: space-between;
   font-size: 13px;
   color: #eee;
-}
-
-/* Leaflet container */
-#suit-map-inner {
-  width: 100%;
-  height: 100%;
 }
 
 /* =========================================================
