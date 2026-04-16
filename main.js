@@ -191,13 +191,6 @@ function registerCogProtocol() {
 /* =========================================================
    LAYER DEFINITIONS
 ========================================================= */
-function buildColorRamp(stops) {
-  // Helper: build MapLibre raster-color interpolation expression
-  const expr = ['interpolate', ['linear'], ['raster-value']];
-  stops.forEach(([v, c]) => expr.push(v, c));
-  return expr;
-}
-
 function addMapLayers() {
   const base = window.location.href.replace(/[^/]*$/, '');
 
@@ -241,37 +234,35 @@ function addMapLayers() {
 
   // ── COG raster layers ────────────────────────────────────
   // Requires maplibre-cog-protocol + MapLibre GL JS ≥ 4.1
+  // colorParam wird als Fragment an die COG-URL gehängt:
+  // #color:<colormap>,<min>,<max>
   const cogLayers = [
     {
       id: 'ndvi-layer',  src: 'ndvi-src',
       file: 'maps/NDVI_Jul_wgs84.tif',
-      range: [-0.63, 0.93],
-      stops: [[-0.63, '#f2f2f2'], [0.15, '#a3c586'], [0.93, '#2f6b3a']]
+      colorParam: 'BrewerGreens,-0.63,0.93'
     },
     {
       id: 'ndwi-layer',  src: 'ndwi-src',
       file: 'maps/NDWI_wgs84.tif',
-      range: [-0.87, 0.78],
-      stops: [[-0.87, '#f7fbff'], [0, '#6baed6'], [0.78, '#08519c']]
+      colorParam: 'BrewerBlues,-0.87,0.78'
     },
     {
       id: 'moran-layer', src: 'moran-src',
       file: 'maps/NDVI_Moran_wgs84.tif',
-      range: [-1.52, 23.53],
-      stops: [[-1.52, '#fee8c8'], [0, '#fdbb84'], [23.53, '#e34a33']]
+      colorParam: 'BrewerOrRd,-1.52,23.53'
     },
     {
       id: 'geary-layer', src: 'geary-src',
       file: 'maps/NDVI_Geary_wgs84.tif',
-      range: [0.0, 8.11],
-      stops: [[0.0, '#f7f4f9'], [4.0, '#998ec3'], [8.11, '#542788']]
+      colorParam: 'BrewerPurples,0.0,8.11'
     },
   ];
 
-  cogLayers.forEach(({ id, src, file, range, stops }) => {
+  cogLayers.forEach(({ id, src, file, colorParam }) => {
     map.addSource(src, {
       type: 'raster',
-      url: `cog://${base}${file}`,
+      url: `cog://${base}${file}#color:${colorParam}`,
       tileSize: 256
     });
     map.addLayer({
@@ -279,11 +270,7 @@ function addMapLayers() {
       type: 'raster',
       source: src,
       layout: { visibility: 'none' },
-      paint: {
-        'raster-opacity':      0.85,
-        'raster-color':        buildColorRamp(stops),
-        'raster-color-range':  range
-      }
+      paint: { 'raster-opacity': 0.85 }
     });
   });
 
@@ -313,26 +300,22 @@ const QUAD_DEFS = [
   {
     container: 'quad-tl',
     file:  'maps/NDVI_Moran_wgs84.tif',
-    range: [-1.52, 23.53],
-    stops: [[-1.52, '#fee8c8'], [0, '#fdbb84'], [23.53, '#e34a33']]
+    colorParam: 'BrewerOrRd,-1.52,23.53'
   },
   {
     container: 'quad-tr',
     file:  'maps/NDVI_Geary_wgs84.tif',
-    range: [0.0, 8.11],
-    stops: [[0.0, '#f7f4f9'], [4.0, '#998ec3'], [8.11, '#542788']]
+    colorParam: 'BrewerPurples,0.0,8.11'
   },
   {
     container: 'quad-bl',
     file:  'maps/NDWI_wgs84.tif',
-    range: [-0.87, 0.78],
-    stops: [[-0.87, '#f7fbff'], [0, '#6baed6'], [0.78, '#08519c']]
+    colorParam: 'BrewerBlues,-0.87,0.78'
   },
   {
     container: 'quad-br',
     file:  'maps/NDVI_Jul_wgs84.tif',
-    range: [-0.63, 0.93],
-    stops: [[-0.63, '#f2f2f2'], [0.15, '#a3c586'], [0.93, '#2f6b3a']]
+    colorParam: 'BrewerGreens,-0.63,0.93'
   },
 ];
 
@@ -346,7 +329,7 @@ function initQuadMaps() {
   const center = map.getCenter();
   const zoom   = map.getZoom();
 
-  quadMaps = QUAD_DEFS.map(({ container, file, range, stops }, i) => {
+  quadMaps = QUAD_DEFS.map(({ container, file, colorParam }, i) => {
     const m = new maplibregl.Map({
       container,
       style,
@@ -361,18 +344,14 @@ function initQuadMaps() {
     m.on('load', () => {
       m.addSource(`q-src-${i}`, {
         type:     'raster',
-        url:      `cog://${base}${file}`,
+        url:      `cog://${base}${file}#color:${colorParam}`,
         tileSize: 256
       });
       m.addLayer({
         id:     `q-layer-${i}`,
         type:   'raster',
         source: `q-src-${i}`,
-        paint: {
-          'raster-opacity':      0.82,
-          'raster-color':        buildColorRamp(stops),
-          'raster-color-range':  range
-        }
+        paint:  { 'raster-opacity': 0.82 }
       });
     });
 
