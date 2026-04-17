@@ -584,19 +584,7 @@ function initSuitMap() {
 
   suitMap = new maplibregl.Map({
     container: 'suit-map-inner',
-    style: {
-      version: 8,
-      glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
-      sources: {
-        osm: {
-          type: 'raster',
-          tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-          tileSize: 256,
-          attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }
-      },
-      layers: [{ id: 'osm-tiles', type: 'raster', source: 'osm' }]
-    },
+    style: `https://api.maptiler.com/maps/satellite/style.json?key=${MAPTILER_KEY}`,
     center: [13.40, 52.50],
     zoom: 11,
     minZoom: 7,
