@@ -12,7 +12,6 @@ __pycache__/
 # Data folders (not in Git)
 data/
 tiles/
-tiles_suit/
 
 # Optional: larger generated stuff
 export/

@@ -273,7 +273,7 @@ function addMapLayers() {
     type: 'raster',
     tiles: ['tiles_suit/{z}/{x}/{y}.png'],
     tileSize: 256,
-    maxzoom:  13
+    maxzoom:  12
   });
   map.addLayer({
     id:     SUIT_LAYER,
