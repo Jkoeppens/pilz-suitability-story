@@ -597,7 +597,7 @@ function initSuitMap() {
   suitMap.on('load', () => {
     suitMap.addSource('suit-tiles', {
       type:   'raster',
-      tiles:  ['tiles_suit/{z}/{x}/{y}.png'],
+      tiles:  ['https://pub-4f210cbdaa354727aed0c7ebd8e993a0.r2.dev/tiles_suit/{z}/{x}/{y}.png'],
       tileSize: 256,
       maxzoom:  13
     });
