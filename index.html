@@ -17,11 +17,9 @@
   <link href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css" rel="stylesheet">
   <script src="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js"></script>
 
-  <!-- COG-Protokoll für GeoTIFF-Streaming (benötigt MapLibre ≥ 4.1) -->
-  <script src="https://unpkg.com/@geomatico/maplibre-cog-protocol/dist/index.js"></script>
-
   <!-- MapTiler API-Key — hier eintragen -->
   <script>window.MAPTILER_KEY = 'G5GPJB5Uc1WS11NDAPWV';</script>
+
 
 </head>
 
@@ -84,6 +82,20 @@
     </div>
   </div>
 
+
+<!-- Fullscreen interaktive Eignungskarte (letzter Stage) -->
+<div id="prediction-map" class="hidden">
+  <button id="map-exit-btn" data-i18n="map_back">← Zurück</button>
+  <div id="suit-map-legend">
+    <div class="legend-gradient"></div>
+    <div class="legend-labels">
+      <span>0</span>
+      <span data-i18n="map_suitability_title">Eignung für Parasole</span>
+      <span>1</span>
+    </div>
+  </div>
+  <div id="suit-map-inner"></div>
+</div>
 
 <!-- Legende für Eignungskarte — erscheint wenn prediction-map aktiv -->
 <div id="suit-legend" class="map-legend hidden">
@@ -223,6 +235,9 @@
   </main>
 
 </div> <!-- END app -->
+
+<!-- Points drawn here: z-index 5 → above quad (inside #map z-index 0), below text boxes (#scroll-root z-index 10) -->
+<canvas id="points-canvas" style="position:fixed;inset:0;z-index:5;pointer-events:none;display:none;"></canvas>
 
 <script src="main.js"></script>
 

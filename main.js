@@ -59,14 +59,16 @@ const I18N = {
     legend_geary_sub:      "lokaler Kontrast",
     legend_ndwi_sub:       "Feuchte",
     legend_ndvi_sub:       "Vegetation",
-    map_suitability_title: "Eignung für Parasole"
+    map_suitability_title: "Eignung für Parasole",
+    map_back:              "← Zurück"
   },
   en: {
     legend_moran_sub:      "local clustering",
     legend_geary_sub:      "local contrast",
     legend_ndwi_sub:       "moisture",
     legend_ndvi_sub:       "vegetation",
-    map_suitability_title: "Parasol suitability"
+    map_suitability_title: "Parasol suitability",
+    map_back:              "← Back"
   }
 };
 
@@ -125,8 +127,13 @@ const STAGE_CAMERAS = {
   1: { center: [13.40, 52.50], zoom:  9.0 },
   2: { center: [13.40, 52.50], zoom: 10.5 },
   3: { center: [13.22, 52.47], zoom: 12.0 },
-  4: { center: [13.40, 52.50], zoom:  9.0 },   // Raster-Viererkarte
-  5: { center: [13.50, 52.40], zoom:  8.5 },
+  4: { center: [13.22, 52.47], zoom: 12.0 },   // Grunewald bleibt durch Stage 4
+  5: { center: [13.40, 52.50], zoom:  9.5 },   // Berlin ab slide5_02_signatures_Data
+};
+
+// Camera override per step: from this slide onwards, use the given camera
+const STEP_CAMERA_OVERRIDES = {
+  'slide5_02_signatures_Data.md': { center: [13.40, 52.50], zoom: 9.5 },
 };
 
 // Maps data-overlay values → MapLibre layer IDs that should become visible
@@ -141,20 +148,58 @@ const OVERLAY_TO_LAYERS = {
 
 const RASTER_LAYERS = ['ndvi-layer', 'ndwi-layer', 'moran-layer', 'geary-layer'];
 const POINT_LAYERS  = ['parasol-points', 'meisen-points'];
+const HALO_LAYERS   = ['parasol-halo',   'meisen-halo'];
+const RIPPLE_LAYERS = ['parasol-ripple', 'meisen-ripple'];
 const SUIT_LAYER    = 'suitability-layer';
-const ALL_LAYERS    = [...POINT_LAYERS, ...RASTER_LAYERS, SUIT_LAYER];
+const ALL_LAYERS    = [...HALO_LAYERS, ...RIPPLE_LAYERS, ...POINT_LAYERS, ...RASTER_LAYERS, SUIT_LAYER];
 
 /* =========================================================
    MAPLIBRE INIT
 ========================================================= */
 let map             = null;
 let mapReady        = false;
-let currentMapStage = null;
-let cogProtocolRegistered = false;
 
-/* QUAD MAP INSTANCE (Stage 4 – 2×2 Raster-Karte) */
-let quadMaps    = null;   // [moranMap, gearyMap, ndwiMap, ndviMap]
-let quadVisible = false;
+/* QUAD OVERLAY (Stage 4 – 2×2 Raster-Karte via CSS-positioned <img>) */
+let quadOverlays = null;
+
+const QUAD_IMG_DEFS = [
+  { container: 'quad-tl', file: 'maps/moran_colored.png' },
+  { container: 'quad-tr', file: 'maps/geary_colored.png' },
+  { container: 'quad-bl', file: 'maps/ndwi_colored.png'  },
+  { container: 'quad-br', file: 'maps/ndvi_colored.png'  },
+];
+
+// WGS84 extent shared by all raster layers
+const IMG_NW = [12.6470, 53.0203];
+const IMG_SE = [14.3160, 51.9793];
+
+function initQuadOverlays() {
+  if (quadOverlays) return;
+  quadOverlays = QUAD_IMG_DEFS.map(({ container, file }) => {
+    const cell = document.getElementById(container);
+    const img  = document.createElement('img');
+    img.src              = file;
+    img.style.position   = 'absolute';
+    img.style.opacity    = '0.82';
+    img.style.pointerEvents = 'none';
+    cell.appendChild(img);
+    return img;
+  });
+  updateQuadOverlays();
+}
+
+function updateQuadOverlays() {
+  if (!quadOverlays) return;
+  const nw = map.project(IMG_NW);
+  const se = map.project(IMG_SE);
+  const l = nw.x, t = nw.y, w = se.x - nw.x, h = se.y - nw.y;
+  quadOverlays.forEach(img => {
+    img.style.left   = `${l}px`;
+    img.style.top    = `${t}px`;
+    img.style.width  = `${w}px`;
+    img.style.height = `${h}px`;
+  });
+}
 
 function initMap() {
   map = new maplibregl.Map({
@@ -171,99 +216,48 @@ function initMap() {
     'bottom-right'
   );
 
-  map.on('load', () => {
-    registerCogProtocol();
+  // Move #quad-root into the canvas container so it shares the same stacking
+  // context as the WebGL canvas — MapLibre circle layers then render above it.
+  const quadRoot = document.getElementById('quad-root');
+  if (quadRoot) map.getCanvasContainer().appendChild(quadRoot);
+
+  map.on('load', async () => {
     addMapLayers();
+    await loadPointData();
     mapReady = true;
     onScroll();
   });
 
-  // Keep quad maps in sync while main map animates
-  map.on('move', syncQuadCameras);
+  map.on('move', updateQuadOverlays);
 }
 
-function registerCogProtocol() {
-  if (cogProtocolRegistered || !window.MaplibreCOGProtocol) return;
-  maplibregl.addProtocol('cog', MaplibreCOGProtocol.cogProtocol);
-  cogProtocolRegistered = true;
-}
+// Bounding box gemeinsam für alle Raster-Layer (WGS84)
+const RASTER_COORDS = [
+  [12.6470, 53.0203],  // NW
+  [14.3160, 53.0203],  // NE
+  [14.3160, 51.9793],  // SE
+  [12.6470, 51.9793],  // SW
+];
 
 /* =========================================================
    LAYER DEFINITIONS
+   Order: raster/suitability first (bottom), then circles on top
 ========================================================= */
 function addMapLayers() {
-  const base = window.location.href.replace(/[^/]*$/, '');
 
-  // ── Parasol find points ──────────────────────────────────
-  map.addSource('parasol-src', {
-    type: 'geojson',
-    data: 'maps/Parasolfunde.geojson'
-  });
-  map.addLayer({
-    id: 'parasol-points',
-    type: 'circle',
-    source: 'parasol-src',
-    layout: { visibility: 'none' },
-    paint: {
-      'circle-radius':       ['interpolate', ['linear'], ['zoom'], 7, 3, 14, 8],
-      'circle-color':        '#ff6600',
-      'circle-opacity':      0.85,
-      'circle-stroke-width': 0.5,
-      'circle-stroke-color': '#fff'
-    }
-  });
-
-  // ── Meisen (bird) find points ────────────────────────────
-  map.addSource('meisen-src', {
-    type: 'geojson',
-    data: 'maps/Meisenfunde.geojson'
-  });
-  map.addLayer({
-    id: 'meisen-points',
-    type: 'circle',
-    source: 'meisen-src',
-    layout: { visibility: 'none' },
-    paint: {
-      'circle-radius':       ['interpolate', ['linear'], ['zoom'], 7, 2, 14, 6],
-      'circle-color':        '#22aaff',
-      'circle-opacity':      0.75,
-      'circle-stroke-width': 0.5,
-      'circle-stroke-color': '#fff'
-    }
-  });
-
-  // ── COG raster layers ────────────────────────────────────
-  // Requires maplibre-cog-protocol + MapLibre GL JS ≥ 4.1
-  // colorParam wird als Fragment an die COG-URL gehängt:
-  // #color:<colormap>,<min>,<max>
-  const cogLayers = [
-    {
-      id: 'ndvi-layer',  src: 'ndvi-src',
-      file: 'maps/NDVI_Jul_wgs84.tif',
-      colorParam: 'BrewerGreens,-0.63,0.93'
-    },
-    {
-      id: 'ndwi-layer',  src: 'ndwi-src',
-      file: 'maps/NDWI_wgs84.tif',
-      colorParam: 'BrewerBlues,-0.87,0.78'
-    },
-    {
-      id: 'moran-layer', src: 'moran-src',
-      file: 'maps/NDVI_Moran_wgs84.tif',
-      colorParam: 'BrewerOrRd,-1.52,23.53'
-    },
-    {
-      id: 'geary-layer', src: 'geary-src',
-      file: 'maps/NDVI_Geary_wgs84.tif',
-      colorParam: 'BrewerPurples,0.0,8.11'
-    },
+  // ── Raster layers (pre-coloured PNGs, image source) ─────
+  const imageLayers = [
+    { id: 'ndvi-layer',  src: 'ndvi-src',  file: 'maps/ndvi_colored.png'  },
+    { id: 'ndwi-layer',  src: 'ndwi-src',  file: 'maps/ndwi_colored.png'  },
+    { id: 'moran-layer', src: 'moran-src', file: 'maps/moran_colored.png' },
+    { id: 'geary-layer', src: 'geary-src', file: 'maps/geary_colored.png' },
   ];
 
-  cogLayers.forEach(({ id, src, file, colorParam }) => {
+  imageLayers.forEach(({ id, src, file }) => {
     map.addSource(src, {
-      type: 'raster',
-      url: `cog://${base}${file}#color:${colorParam}`,
-      tileSize: 256
+      type: 'image',
+      url: file,
+      coordinates: RASTER_COORDS
     });
     map.addLayer({
       id,
@@ -274,15 +268,12 @@ function addMapLayers() {
     });
   });
 
-  // ── Suitability tiles (Cloudflare R2, pre-tiled PNGs) ────
+  // ── Suitability tiles ────────────────────────────────────
   map.addSource('suitability-src', {
     type: 'raster',
-    tiles: [
-      'https://pub-4f210cbdaa354727aed0c7ebd8e93a0.r2.dev/tiles_suit/{z}/{x}/{y}.png'
-    ],
+    tiles: ['tiles_suit/{z}/{x}/{y}.png'],
     tileSize: 256,
-    scheme:   'tms',
-    maxzoom:  15
+    maxzoom:  13
   });
   map.addLayer({
     id:     SUIT_LAYER,
@@ -291,83 +282,363 @@ function addMapLayers() {
     layout: { visibility: 'none' },
     paint:  { 'raster-opacity': 0.85 }
   });
-}
 
-/* =========================================================
-   QUAD-MAP INIT (Stage 4 – 2×2 Raster-Karte)
-========================================================= */
-const QUAD_DEFS = [
-  {
-    container: 'quad-tl',
-    file:  'maps/NDVI_Moran_wgs84.tif',
-    colorParam: 'BrewerOrRd,-1.52,23.53'
-  },
-  {
-    container: 'quad-tr',
-    file:  'maps/NDVI_Geary_wgs84.tif',
-    colorParam: 'BrewerPurples,0.0,8.11'
-  },
-  {
-    container: 'quad-bl',
-    file:  'maps/NDWI_wgs84.tif',
-    colorParam: 'BrewerBlues,-0.87,0.78'
-  },
-  {
-    container: 'quad-br',
-    file:  'maps/NDVI_Jul_wgs84.tif',
-    colorParam: 'BrewerGreens,-0.63,0.93'
-  },
-];
+  // ── Parasol find points (staggered-fade + ripple) ────────
+  map.addSource('parasol-src', {
+    type: 'geojson',
+    data: 'maps/Parasolfunde.geojson',
+    generateId: true
+  });
+  map.addLayer({
+    id: 'parasol-halo',
+    type: 'circle',
+    source: 'parasol-src',
+    layout: { visibility: 'none' },
+    paint: {
+      'circle-radius':  12,
+      'circle-color':   '#f3e79b',
+      'circle-opacity': ['*', ['coalesce', ['feature-state', 'opacity'], 0], 0.25],
+      'circle-stroke-width': 0,
+    }
+  });
+  map.addLayer({
+    id: 'parasol-ripple',
+    type: 'circle',
+    source: 'parasol-src',
+    layout: { visibility: 'none' },
+    paint: {
+      'circle-radius':  ['coalesce', ['feature-state', 'ripple_r'],  0],
+      'circle-color':   '#f3e79b',
+      'circle-opacity': ['coalesce', ['feature-state', 'ripple_op'], 0],
+      'circle-stroke-width': 0,
+    }
+  });
+  map.addLayer({
+    id: 'parasol-points',
+    type: 'circle',
+    source: 'parasol-src',
+    layout: { visibility: 'none' },
+    paint: {
+      'circle-radius':       ['interpolate', ['linear'], ['zoom'], 7, 3, 14, 8],
+      'circle-color':        '#f3e79b',
+      'circle-opacity':      ['*', ['coalesce', ['feature-state', 'opacity'], 0], 0.9],
+      'circle-stroke-width': 0.5,
+      'circle-stroke-color': 'rgba(0,0,0,0.4)'
+    }
+  });
 
-function initQuadMaps() {
-  if (quadMaps) return;
-
-  registerCogProtocol();
-
-  const base   = window.location.href.replace(/[^/]*$/, '');
-  const style  = `https://api.maptiler.com/maps/satellite/style.json?key=${MAPTILER_KEY}`;
-  const center = map.getCenter();
-  const zoom   = map.getZoom();
-
-  quadMaps = QUAD_DEFS.map(({ container, file, colorParam }, i) => {
-    const m = new maplibregl.Map({
-      container,
-      style,
-      center,
-      zoom,
-      pitch:              0,
-      bearing:            0,
-      interactive:        false,   // camera is driven by the main map
-      attributionControl: false
-    });
-
-    m.on('load', () => {
-      m.addSource(`q-src-${i}`, {
-        type:     'raster',
-        url:      `cog://${base}${file}#color:${colorParam}`,
-        tileSize: 256
-      });
-      m.addLayer({
-        id:     `q-layer-${i}`,
-        type:   'raster',
-        source: `q-src-${i}`,
-        paint:  { 'raster-opacity': 0.82 }
-      });
-    });
-
-    return m;
+  // ── Meisen / Bias-Punkte (staggered-fade + ripple) ───────
+  map.addSource('meisen-src', {
+    type: 'geojson',
+    data: 'maps/Meisenfunde.geojson',
+    generateId: true
+  });
+  map.addLayer({
+    id: 'meisen-halo',
+    type: 'circle',
+    source: 'meisen-src',
+    layout: { visibility: 'none' },
+    paint: {
+      'circle-radius':  12,
+      'circle-color':   '#61d1c7',
+      'circle-opacity': ['*', ['coalesce', ['feature-state', 'opacity'], 0], 0.25],
+      'circle-stroke-width': 0,
+    }
+  });
+  map.addLayer({
+    id: 'meisen-ripple',
+    type: 'circle',
+    source: 'meisen-src',
+    layout: { visibility: 'none' },
+    paint: {
+      'circle-radius':  ['coalesce', ['feature-state', 'ripple_r'],  0],
+      'circle-color':   '#61d1c7',
+      'circle-opacity': ['coalesce', ['feature-state', 'ripple_op'], 0],
+      'circle-stroke-width': 0,
+    }
+  });
+  map.addLayer({
+    id: 'meisen-points',
+    type: 'circle',
+    source: 'meisen-src',
+    layout: { visibility: 'none' },
+    paint: {
+      'circle-radius':       ['interpolate', ['linear'], ['zoom'], 7, 2, 14, 6],
+      'circle-color':        '#61d1c7',
+      'circle-opacity':      ['*', ['coalesce', ['feature-state', 'opacity'], 0], 0.9],
+      'circle-stroke-width': 0.5,
+      'circle-stroke-color': 'rgba(0,0,0,0.4)'
+    }
   });
 }
 
-function syncQuadCameras() {
-  if (!quadMaps) return;
-  const cam = {
-    center:  map.getCenter(),
-    zoom:    map.getZoom(),
-    bearing: map.getBearing(),
-    pitch:   map.getPitch()
-  };
-  quadMaps.forEach(m => m.jumpTo(cam));
+
+/* =========================================================
+   POINT ANIMATION – canvas overlay (z-index 20, above quad)
+   All point rendering happens on #points-canvas, not via
+   MapLibre circle layers, so circles are always above the
+   CSS quad images regardless of stacking context.
+========================================================= */
+
+const POINT_ANIM_CFG = {
+  'parasol-src': { url: 'maps/Parasolfunde.geojson', count: 0 },
+  'meisen-src':  { url: 'maps/Meisenfunde.geojson',  count: 0 },
+};
+
+// Loaded GeoJSON coordinates per source
+const pointFeatures = {
+  'parasol-src': [],   // [{id, lng, lat}]
+  'meisen-src':  [],
+};
+
+// Per-source runtime animation state
+const animStates = {
+  'parasol-src': { done: false, allRevealed: false, revealed: new Set(), rippleStart: new Map(), revealDelays: [], t0: null },
+  'meisen-src':  { done: false, allRevealed: false, revealed: new Set(), rippleStart: new Map(), revealDelays: [], t0: null },
+};
+
+const LAYER_TO_SRC = { 'parasol-points': 'parasol-src', 'meisen-points': 'meisen-src' };
+let   canvasVisible = new Set();  // which sources are currently shown on the canvas
+
+async function loadPointData() {
+  for (const [srcId, cfg] of Object.entries(POINT_ANIM_CFG)) {
+    try {
+      const data = await fetch(cfg.url).then(r => r.json());
+      cfg.count = data.features.length;
+      pointFeatures[srcId] = data.features.map((f, i) => ({
+        id:  i,
+        lng: f.geometry.coordinates[0],
+        lat: f.geometry.coordinates[1],
+      }));
+    } catch (e) {
+      console.warn('[points] could not load', cfg.url, e);
+    }
+  }
+}
+
+function shuffleIndices(n) {
+  const arr = Array.from({ length: n }, (_, i) => i);
+  for (let i = n - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+/* ── Canvas draw ─────────────────────────────────────── */
+function redrawPointsCanvas(now = performance.now()) {
+  const canvas = document.getElementById('points-canvas');
+  if (!canvas || !mapReady) return;
+
+  if (canvasVisible.size === 0) {
+    canvas.style.display = 'none';
+    return;
+  }
+  canvas.style.display = 'block';
+
+  if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const zoom   = map.getZoom();
+  const pulseT = (Math.sin(now / 1000 * Math.PI) + 1) / 2;   // 0–1, period 2 s
+  const haloR  = 10 + 4 * pulseT;
+
+  for (const [srcId, features] of Object.entries(pointFeatures)) {
+    if (!canvasVisible.has(srcId)) continue;
+
+    const isParasol = srcId === 'parasol-src';
+    const color = isParasol ? '#f3e79b' : '#61d1c7';
+    const minR  = isParasol ? 3 : 2;
+    const maxR  = isParasol ? 8 : 6;
+    const coreR = minR + (maxR - minR) * Math.min(1, Math.max(0, (zoom - 7) / 7));
+    const state = animStates[srcId];
+
+    for (const { id, lng, lat } of features) {
+      if (!state.revealed.has(id)) continue;
+      const pt = map.project([lng, lat]);
+      if (pt.x < -60 || pt.x > canvas.width + 60 ||
+          pt.y < -60 || pt.y > canvas.height + 60) continue;
+
+      // Halo – pulsing glow
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, haloR, 0, Math.PI * 2);
+      ctx.fillStyle   = color;
+      ctx.globalAlpha = 0.25;
+      ctx.fill();
+
+      // Ripple ring
+      const rs = state.rippleStart.get(id);
+      if (rs !== undefined) {
+        const t = Math.min(1, (now - rs) / 600);
+        if (t < 1) {
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, 5 + 18 * t, 0, Math.PI * 2);
+          ctx.fillStyle   = color;
+          ctx.globalAlpha = 0.55 * (1 - t);
+          ctx.fill();
+        }
+      }
+
+      // Core dot
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, coreR, 0, Math.PI * 2);
+      ctx.fillStyle   = color;
+      ctx.globalAlpha = 0.9;
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+      ctx.lineWidth   = 0.5;
+      ctx.globalAlpha = 1;
+      ctx.stroke();
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
+/* ── Animation start / reset ─────────────────────────── */
+function startPointAnimation(srcId) {
+  const cfg   = POINT_ANIM_CFG[srcId];
+  const state = animStates[srcId];
+  if (!state || state.done || cfg.count === 0) return;
+
+  const order = shuffleIndices(cfg.count);
+  state.revealDelays = new Array(cfg.count);
+  order.forEach((featureId, rank) => {
+    state.revealDelays[featureId] = (rank / cfg.count) * 1500;
+  });
+
+  state.revealed.clear();
+  state.rippleStart.clear();
+  state.allRevealed = false;
+  state.done        = false;
+  state.t0          = performance.now();
+}
+
+function resetPointAnimation(srcId) {
+  const state = animStates[srcId];
+  if (!state) return;
+  state.done        = false;
+  state.allRevealed = false;
+  state.t0          = null;
+  state.revealed.clear();
+  state.rippleStart.clear();
+}
+
+/* ── Single continuous rAF loop: reveal + ripple + pulse ─ */
+let pulseRafId = null;
+
+function startPulseLoop() {
+  if (pulseRafId) return;
+  function tick(now) {
+    // Advance all active animations
+    for (const [srcId, state] of Object.entries(animStates)) {
+      if (!canvasVisible.has(srcId) || state.done || state.t0 === null) continue;
+      const cfg     = POINT_ANIM_CFG[srcId];
+      const elapsed = now - state.t0;
+
+      if (!state.allRevealed) {
+        for (let id = 0; id < cfg.count; id++) {
+          if (!state.revealed.has(id) && elapsed >= state.revealDelays[id]) {
+            state.revealed.add(id);
+            state.rippleStart.set(id, now);
+          }
+        }
+        if (state.revealed.size === cfg.count) state.allRevealed = true;
+      }
+
+      for (const [id, t_start] of state.rippleStart) {
+        if (now - t_start >= 600) state.rippleStart.delete(id);
+      }
+
+      if (state.allRevealed && state.rippleStart.size === 0) state.done = true;
+    }
+
+    redrawPointsCanvas(now);
+    pulseRafId = requestAnimationFrame(tick);
+  }
+  pulseRafId = requestAnimationFrame(tick);
+}
+
+function stopPulseLoop() {
+  if (pulseRafId) { cancelAnimationFrame(pulseRafId); pulseRafId = null; }
+  const canvas = document.getElementById('points-canvas');
+  if (canvas) canvas.style.display = 'none';
+}
+
+/* =========================================================
+   INTERACTIVE SUITABILITY MAP
+========================================================= */
+let suitMap            = null;
+let suitMapInitialized = false;
+
+function initSuitMap() {
+  if (suitMapInitialized) {
+    suitMap?.resize();
+    return;
+  }
+  suitMapInitialized = true;
+
+  suitMap = new maplibregl.Map({
+    container: 'suit-map-inner',
+    style: {
+      version: 8,
+      glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+      sources: {
+        osm: {
+          type: 'raster',
+          tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+          tileSize: 256,
+          attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }
+      },
+      layers: [{ id: 'osm-tiles', type: 'raster', source: 'osm' }]
+    },
+    center: [13.40, 52.50],
+    zoom: 11,
+    minZoom: 7,
+    attributionControl: false
+  });
+
+  suitMap.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-left');
+  suitMap.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-left');
+
+  suitMap.on('load', () => {
+    suitMap.addSource('suit-tiles', {
+      type:   'raster',
+      tiles:  ['tiles_suit/{z}/{x}/{y}.png'],
+      tileSize: 256,
+      maxzoom:  13
+    });
+    suitMap.addLayer({
+      id:    'suit-overlay',
+      type:  'raster',
+      source: 'suit-tiles',
+      paint: { 'raster-opacity': 0.82 }
+    });
+  });
+}
+
+function applyPredictionMap(activeIndex) {
+  const pred = document.getElementById('prediction-map');
+  if (!pred) return;
+
+  const show = steps[activeIndex]?.el.dataset.trigger === 'prediction-map';
+
+  pred.classList.toggle('active', show);
+  pred.classList.toggle('hidden', !show);
+
+  // Lock page scroll while interactive map is open
+  document.body.style.overflow = show ? 'hidden' : '';
+
+  if (show) {
+    initSuitMap();
+    // Defer resize until the container is fully visible
+    requestAnimationFrame(() => suitMap?.resize());
+  }
 }
 
 /* =========================================================
@@ -453,15 +724,32 @@ function getCurrentStage(scrollCenter) {
 /* =========================================================
    MAP: CAMERA
 ========================================================= */
-function applyMapCamera(scrollCenter) {
+let currentCamKey = null;
+
+function applyMapCamera(scrollCenter, activeIndex) {
   if (!mapReady) return;
 
-  const stage = getCurrentStage(scrollCenter);
-  if (stage === currentMapStage) return;
-  currentMapStage = stage;
+  // Find the last step-level override that is at or before activeIndex
+  let cam = null;
+  let camKey = null;
+  for (let i = activeIndex; i >= 0; i--) {
+    const md = steps[i]?.el.dataset.md;
+    if (md && STEP_CAMERA_OVERRIDES[md]) {
+      cam    = STEP_CAMERA_OVERRIDES[md];
+      camKey = md;
+      break;
+    }
+  }
 
-  const cam = STAGE_CAMERAS[stage];
-  if (!cam) return;
+  // Fall back to stage-based camera
+  if (!cam) {
+    const stage = getCurrentStage(scrollCenter);
+    cam    = STAGE_CAMERAS[stage];
+    camKey = `stage-${stage}`;
+  }
+
+  if (!cam || camKey === currentCamKey) return;
+  currentCamKey = camKey;
 
   map.easeTo({
     center:   cam.center,
@@ -497,15 +785,36 @@ function applyMapLayers(activeIndex) {
       });
   }
 
-  // Stage 5: all four analysis rasters always visible on the main map
-  if (currentStage === 5) {
-    RASTER_LAYERS.forEach(l => visible.add(l));
-  }
-
   // Prediction step: also show the suitability layer
   if (activeStep.el.dataset.trigger === 'prediction-map') {
     visible.add(SUIT_LAYER);
   }
+
+  // ── Canvas point management ──────────────────────────────
+  // Points are drawn on #points-canvas (z-index 20), not as MapLibre layers,
+  // so they always render above the CSS quad images.
+  const newCanvasVisible = new Set();
+  if (visible.has('parasol-points')) newCanvasVisible.add('parasol-src');
+  if (visible.has('meisen-points'))  newCanvasVisible.add('meisen-src');
+
+  for (const [layerId, srcId] of Object.entries(LAYER_TO_SRC)) {
+    const nowVis = visible.has(layerId);
+    const wasVis = canvasVisible.has(srcId);
+    if (nowVis && !wasVis)  startPointAnimation(srcId);
+    else if (!nowVis && wasVis) resetPointAnimation(srcId);
+  }
+  canvasVisible = newCanvasVisible;
+
+  if (canvasVisible.size > 0) startPulseLoop();
+  else                        stopPulseLoop();
+
+  // Remove point/halo/ripple from MapLibre visibility — canvas handles them
+  POINT_LAYERS.forEach(id => visible.delete(id));
+  HALO_LAYERS.forEach(id  => visible.delete(id));
+  RIPPLE_LAYERS.forEach(id => visible.delete(id));
+
+  // ── Stage 5: 2×2 Raster-Viererkarte ──────────────────────
+  const showQuad = (currentStage === 5) && activeStep.el.dataset.trigger !== 'prediction-map';
 
   ALL_LAYERS.forEach(id => {
     try {
@@ -513,14 +822,12 @@ function applyMapLayers(activeIndex) {
     } catch (_) {}
   });
 
-  // ── Stage 4: 2×2 Raster-Viererkarte ─────────────────────
-  const showQuad = (currentStage === 4);
   const quadRoot = document.getElementById('quad-root');
   if (quadRoot) {
     quadRoot.classList.toggle('hidden', !showQuad);
     if (showQuad) {
-      if (!quadMaps) initQuadMaps();   // lazy init on first appearance
-      else syncQuadCameras();          // snap to current camera on re-entry
+      initQuadOverlays();
+      updateQuadOverlays();
     }
   }
 
@@ -658,8 +965,9 @@ function onScroll() {
   applyOverlays(scrollCenter);
   const activeIndex = applyStepVisibility(scrollCenter);
   applyHtmlOverlay(scrollCenter);
-  applyMapCamera(scrollCenter);
+  applyMapCamera(scrollCenter, activeIndex);
   applyMapLayers(activeIndex);
+  applyPredictionMap(activeIndex);
 }
 
 /* =========================================================
@@ -699,4 +1007,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     computeLayout();
     onScroll();
   });
+
+  // ── Exit-Button: Eignungskarte schließen → zurück zum letzten Erklärungsschritt
+  document.getElementById('map-exit-btn')?.addEventListener('click', () => {
+    const target = steps.find(s => s.el.dataset.md === 'slide5_06_prediction_explain.md');
+    if (!target) return;
+    window.scrollTo({ top: target.top - window.innerHeight * 0.25, behavior: 'smooth' });
+  });
+
 });
