@@ -4,8 +4,8 @@
 
 const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const TILES_CONFIG = IS_LOCAL
-  ? { url: `${window.location.origin}/tiles_suit/{z}/{x}/{y}.png`, scheme: 'xyz', maxzoom: 12 }
-  : { url: 'https://pub-4f210cbdaa354727aed0c7ebd8e993a0.r2.dev/tiles_suit/{z}/{x}/{y}.png', scheme: 'tms', maxzoom: 7 };
+  ? { url: `${window.location.origin}/tiles_suit/{z}/{x}/{y}.png`, maxzoom: 12 }
+  : { url: 'https://pub-4f210cbdaa354727aed0c7ebd8e993a0.r2.dev/tiles_suit/{z}/{x}/{y}.png', maxzoom: 7 };
 const TILES_BASE = TILES_CONFIG.url;
 
 /* =========================================================
@@ -279,7 +279,6 @@ function addMapLayers() {
     type:     'raster',
     tiles:    [TILES_BASE],
     tileSize: 256,
-    scheme:   TILES_CONFIG.scheme,
     maxzoom:  TILES_CONFIG.maxzoom
   });
   map.addLayer({
@@ -606,7 +605,6 @@ function initSuitMap() {
       type:     'raster',
       tiles:    [TILES_BASE],
       tileSize: 256,
-      scheme:   TILES_CONFIG.scheme,
       maxzoom:  TILES_CONFIG.maxzoom
     });
     suitMap.addLayer({
