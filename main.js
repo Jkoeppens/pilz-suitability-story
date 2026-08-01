@@ -2,6 +2,12 @@
    Scrollytelling • MapLibre GL JS
 ========================================================= */
 
+const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const TILES_CONFIG = IS_LOCAL
+  ? { url: `${window.location.origin}/tiles_suit/{z}/{x}/{y}.png`, scheme: 'xyz', maxzoom: 12 }
+  : { url: 'https://pub-4f210cbdaa354727aed0c7ebd8e993a0.r2.dev/tiles_suit/{z}/{x}/{y}.png', scheme: 'tms', maxzoom: 7 };
+const TILES_BASE = TILES_CONFIG.url;
+
 /* =========================================================
    LANGUAGE
 ========================================================= */
@@ -270,10 +276,11 @@ function addMapLayers() {
 
   // ── Suitability tiles ────────────────────────────────────
   map.addSource('suitability-src', {
-    type: 'raster',
-    tiles: ['https://pub-4f210cbdaa354727aed0c7ebd8e993a0.r2.dev/tiles_suit/{z}/{x}/{y}.png'],
+    type:     'raster',
+    tiles:    [TILES_BASE],
     tileSize: 256,
-    scheme:   'tms'
+    scheme:   TILES_CONFIG.scheme,
+    maxzoom:  TILES_CONFIG.maxzoom
   });
   map.addLayer({
     id:     SUIT_LAYER,
@@ -596,10 +603,11 @@ function initSuitMap() {
 
   suitMap.on('load', () => {
     suitMap.addSource('suit-tiles', {
-      type:   'raster',
-      tiles:  ['https://pub-4f210cbdaa354727aed0c7ebd8e993a0.r2.dev/tiles_suit/{z}/{x}/{y}.png'],
+      type:     'raster',
+      tiles:    [TILES_BASE],
       tileSize: 256,
-      maxzoom:  13
+      scheme:   TILES_CONFIG.scheme,
+      maxzoom:  TILES_CONFIG.maxzoom
     });
     suitMap.addLayer({
       id:    'suit-overlay',
