@@ -6,7 +6,7 @@
 	import QuadOverlay from '$lib/QuadOverlay.svelte';
 	import { untrack } from 'svelte';
 	import {
-		autoSpacing,
+		computeStepMargins,
 		computeLayout,
 		getCurrentStage,
 		getActiveIndex,
@@ -40,11 +40,14 @@
 		const els = untrack(() => stepEls);
 		if (els.some((el) => !el)) return;
 
-		autoSpacing(stepDefs, els);
 		const layout = computeLayout(stepDefs, els, h);
 		steps = layout.steps;
 		transitions = layout.transitions;
 	}
+
+	// Reiner Wert aus stepDefs, keine DOM-Messung nötig — siehe Kommentar in
+	// scroll.js. Wird als Prop an Step.svelte durchgereicht.
+	const stepMargins = $derived(computeStepMargins(stepDefs));
 
 	$effect(() => {
 		// innerWidth mitlesen, obwohl die Formeln unten nur innerHeight
@@ -113,7 +116,7 @@
 
 <main id="scroll-root" bind:this={scrollRootEl}>
 	{#each stepDefs as step, i}
-		<Step {step} bind:el={stepEls[i]} active={i === activeIndex} />
+		<Step {step} bind:el={stepEls[i]} active={i === activeIndex} margin={stepMargins[i]} />
 	{/each}
 </main>
 

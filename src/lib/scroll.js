@@ -13,24 +13,34 @@
 // stepDefs[i].stage (dem steps.js-Array) statt aus el.dataset.stage — wir
 // schreiben data-stage gar nicht ins Markup, siehe Step.svelte/steps.js aus
 // Schritt 3.
+//
+// autoSpacing() ist keine eigene Funktion mehr, sondern computeStepMargins()
+// (reiner Wert statt DOM-Schreibzugriff): die Margins hängen nur von der
+// Step-Anzahl pro Stage ab, also von stepDefs allein — keine gemessene
+// Geometrie nötig. +page.svelte berechnet sie als $derived und reicht sie
+// als Prop an Step.svelte durch, das sie per style:-Bindung setzt. Der
+// Vermessungs-Effekt unten liest damit nur noch, er schreibt nicht mehr ins
+// DOM, bevor er misst.
 
 export const STAGE_FADE_PORTION = 0.35;
 
-export function autoSpacing(stepDefs, stepEls) {
+export function computeStepMargins(stepDefs) {
 	const byStage = {};
 
 	stepDefs.forEach((def, i) => {
 		if (def.introStep) return;
-		(byStage[def.stage] ||= []).push(stepEls[i]);
+		(byStage[def.stage] ||= []).push(i);
 	});
 
-	Object.values(byStage).forEach((stageEls) => {
-		const margin = 30 + stageEls.length * 8;
-		stageEls.forEach((el) => {
-			el.style.marginTop = `${margin}vh`;
-			el.style.marginBottom = `${margin}vh`;
+	const margins = new Array(stepDefs.length).fill(0);
+	Object.values(byStage).forEach((indices) => {
+		const margin = 30 + indices.length * 8;
+		indices.forEach((i) => {
+			margins[i] = margin;
 		});
 	});
+
+	return margins;
 }
 
 export function computeLayout(stepDefs, stepEls, innerHeight) {

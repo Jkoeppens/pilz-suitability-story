@@ -2,7 +2,7 @@
 	import { marked } from 'marked';
 	import { lang } from './lang.svelte.js';
 
-	let { step, el = $bindable(null), active = false } = $props();
+	let { step, el = $bindable(null), active = false, margin = 0 } = $props();
 
 	let html = $state('');
 
@@ -32,6 +32,8 @@
 	class:step--spacer={step.spacer}
 	class:step--active={active}
 	style={step.style}
+	style:margin-top="{margin}vh"
+	style:margin-bottom="{margin}vh"
 >
 	{#if html}
 		{@html html}
