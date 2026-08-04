@@ -22,26 +22,20 @@
 	let innerHeight = $state(0);
 
 	let stepEls = $state(new Array(stepDefs.length).fill(null));
+	let scrollRootEl;
 
 	// Von computeLayout() vermessen — kein $derived, siehe Step-Vermessung
 	// unten: braucht echte DOM-Geometrie, ist also ein Seiteneffekt.
 	let steps = $state([]);
 	let transitions = $state([]);
 
-	$effect(() => {
-		// innerWidth mitlesen, obwohl die Formeln unten nur innerHeight
-		// benutzen: bei schmalerem Viewport bricht Text anders um, wodurch
-		// sich offsetHeight ändert — also muss auch bei reinem Breiten-Resize
-		// neu vermessen werden, genau wie im Original bei jedem "resize".
-		void innerWidth;
-		const h = innerHeight;
-
-		// stepEls ungetrackt lesen: die Refs werden einmal beim Mount gesetzt
-		// und ändern sich danach nicht mehr. Würde man sie hier live mitlesen,
-		// entstünde ein Kreis: dieser Effekt schreibt steps → activeIndex
-		// ($derived aus steps) ändert sich → Step re-rendert → bind:el schreibt
-		// stepEls[i] erneut → Effekt läuft wieder, obwohl sich nichts an den
-		// eigentlichen DOM-Referenzen geändert hat.
+	// stepEls ungetrackt lesen: die Refs werden einmal beim Mount gesetzt und
+	// ändern sich danach nicht mehr. Würde man sie hier live mitlesen,
+	// entstünde ein Kreis: dieser Effekt schreibt steps → activeIndex
+	// ($derived aus steps) ändert sich → Step re-rendert → bind:el schreibt
+	// stepEls[i] erneut → Effekt läuft wieder, obwohl sich nichts an den
+	// eigentlichen DOM-Referenzen geändert hat (siehe Schritt 6).
+	function remeasure(h) {
 		const els = untrack(() => stepEls);
 		if (els.some((el) => !el)) return;
 
@@ -49,6 +43,30 @@
 		const layout = computeLayout(stepDefs, els, h);
 		steps = layout.steps;
 		transitions = layout.transitions;
+	}
+
+	$effect(() => {
+		// innerWidth mitlesen, obwohl die Formeln unten nur innerHeight
+		// benutzen: bei schmalerem Viewport bricht Text anders um, wodurch
+		// sich offsetHeight ändert — also muss auch bei reinem Breiten-Resize
+		// neu vermessen werden, genau wie im Original bei jedem "resize".
+		void innerWidth;
+		remeasure(innerHeight);
+	});
+
+	// Regression gegenüber main.js: main.js awaitet loadMarkdown() (alle
+	// Markdown-Dateien geladen) bevor computeLayout() läuft — Step.svelte lädt
+	// hier aber pro Step asynchron nach, lange nachdem stepEls gebunden sind.
+	// Ohne diesen Beobachter würde einmalig auf leere .step-Boxen vermessen
+	// und nie wieder aktualisiert, egal wodurch sich die Höhe später ändert
+	// (Markdown, Webfont-Nachladen, Sprachwechsel, …). ResizeObserver auf dem
+	// Scroll-Container deckt alle diese Ursachen gleichermaßen ab, statt für
+	// jede einzeln einen Sonderfall zu bauen.
+	$effect(() => {
+		if (!scrollRootEl) return;
+		const observer = new ResizeObserver(() => remeasure(innerHeight));
+		observer.observe(scrollRootEl);
+		return () => observer.disconnect();
 	});
 
 	const scrollCenter = $derived(scrollY + innerHeight * 0.5);
@@ -85,7 +103,7 @@
 
 <LangSwitch />
 
-<main id="scroll-root">
+<main id="scroll-root" bind:this={scrollRootEl}>
 	{#each stepDefs as step, i}
 		<Step {step} bind:el={stepEls[i]} active={i === activeIndex} />
 	{/each}

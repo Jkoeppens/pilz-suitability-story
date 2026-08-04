@@ -315,3 +315,56 @@ später nicht wie ein Versehen liest.
   (Basis: `opacity: 0`) und `.overlay-model.active` (`opacity: 1`) regeln
   die Sichtbarkeit bereits vollständig. Die Portierung setzt daher nur
   `class:active`, ohne `.hidden` und ohne die redundanten Inline-Styles.
+
+- **`ResizeObserver` auf `#scroll-root`, um die Step-Vermessung nach
+  spät ankommendem Markdown erneut laufen zu lassen** (`src/routes/+page.svelte`,
+  Commit vor „Schritt 8: 2×2-Rasterkarte“) — behebt eine **Regression aus
+  der Portierung**, keine Verhaltensangleichung ans Original:
+
+  **Ist main.js vom selben Problem betroffen?** Empirisch geprüft (Original
+  lokal gestartet, `window._steps` — dort zu Debug-Zwecken global abgelegt
+  — gegen live `offsetTop` über alle 19 Steps verglichen): **Nein, `diff: 0`
+  überall.** `main.js` awaitet `loadMarkdown()` (alle Markdown-Dateien
+  geladen) explizit, bevor `computeLayout()` läuft (main.js, `DOMContentLoaded`-
+  Handler); die dafür nötige Netzwerk-Wartezeit reicht in der Praxis aus,
+  damit auch die nachladende Google-Font (`display=swap`) fertig ist. Kein
+  Bug im Original — ein Nebeneffekt der Reihenfolge, der das Font-Problem
+  zufällig mit abdeckt.
+
+  **Regression in der Portierung:** `Step.svelte` lädt sein Markdown per
+  eigenem `$effect` und `fetch()` — asynchron, pro Step, unabhängig von der
+  Vermessung in `+page.svelte`. Die Vermessung selbst lief seit Schritt 5
+  nur einmal beim Mount (alle `stepEls`-Refs gebunden) und danach nur bei
+  `innerWidth`/`innerHeight`-Änderungen — beides passiert, bevor auch nur
+  ein einziger Markdown-Fetch zurückkommt. Gemessen: Step-Index 3 lag bei
+  der (einzigen) Vermessung auf `offsetTop 1042px`, tatsächlich renderte er
+  nach Ankunft des Markdowns bei `1862px` — 820px Differenz an nur einer
+  Stelle, die sich über die Seite aufsummiert (Index 12: bereits >1800px).
+  In der Praxis bedeutete das falsche `activeIndex`/`currentStage`-Werte,
+  sobald man weit genug scrollte — u. a. Ursache dafür, dass die Quad-Karte
+  in Schritt 8 zunächst an der falschen Stelle erschien.
+
+  **Fix:** Ein `ResizeObserver` beobachtet `#scroll-root` selbst (nicht die
+  einzelnen Steps) und löst dieselbe `remeasure()`-Funktion aus wie der
+  bestehende Resize-Effekt, sobald sich dessen Gesamthöhe ändert — egal ob
+  durch nachladendes Markdown, Webfont-Tausch, Sprachwechsel oder künftige
+  Bilder. Ein Sonderfall pro Ursache war nicht nötig.
+
+  **Kreis-Check** (explizit geprüft, siehe Schritt-6-`untrack()`-Vorfall):
+  `autoSpacing()` setzt Margins ausschließlich aus der Step-*Anzahl* pro
+  Stage, nie aus gemessenen Werten — bei gleichbleibender Anzahl liefert es
+  bei jedem Aufruf dieselben Margin-Werte, verändert also nicht erneut die
+  Höhe von `#scroll-root` und triggert den Observer nicht ein zweites Mal.
+  Verifiziert über einen Aufruf-Zähler während der Entwicklung: keine
+  Endlosschleife.
+
+  **Testgrenze:** `ResizeObserver`-Benachrichtigungen selbst konnten in der
+  Browser-Automatisierungsumgebung dieser Session nicht beobachtet werden
+  — `document.visibilityState` blieb dort durchgehend `"hidden"` (bestätigt
+  über ein isoliertes, app-unabhängiges Test-Element: selbst ein nackter
+  `requestAnimationFrame`-Aufruf feuerte nicht). Das ist ein bekanntes
+  Chromium-Verhalten für nicht sichtbare Tabs, keine Eigenschaft des Codes.
+  Verifiziert wurde stattdessen: die Registrierung des Observers am
+  richtigen Element, keine Endlosschleife, und das korrekte Endergebnis
+  (Step-Positionen nach Ankunft des Markdowns korrekt, Quad-Karte in
+  Schritt 8 erscheint an der richtigen Stelle).
