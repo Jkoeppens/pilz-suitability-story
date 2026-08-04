@@ -1,11 +1,9 @@
 name: Deploy to GitHub Pages
 
-# Vorerst nur vom svelte-migration-Branch, nicht main — main bleibt
-# unangetastet, bis das Ergebnis geprüft ist.
 on:
   push:
     branches:
-      - svelte-migration
+      - main
 
 permissions:
   contents: read
