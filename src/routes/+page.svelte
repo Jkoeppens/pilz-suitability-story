@@ -4,6 +4,7 @@
 	import LangSwitch from '$lib/LangSwitch.svelte';
 	import Map from '$lib/Map.svelte';
 	import QuadOverlay from '$lib/QuadOverlay.svelte';
+	import SuitMap from '$lib/SuitMap.svelte';
 	import { untrack } from 'svelte';
 	import {
 		computeStepMargins,
@@ -16,7 +17,8 @@
 		computeModelZones,
 		isModelVisible
 	} from '$lib/scroll.js';
-	import { getCameraKey, getVisibleLayers } from '$lib/map.js';
+	import { getCameraKey, getVisibleLayers, SUIT_LAYER } from '$lib/map.js';
+	import { t } from '$lib/i18n.js';
 
 	let scrollY = $state(0);
 	let innerWidth = $state(0);
@@ -95,15 +97,45 @@
 	const showQuad = $derived(currentStage === 5 && stepDefs[activeIndex]?.trigger !== 'prediction-map');
 
 	let quadRect = $state(null);
+
+	// Aus applyPredictionMap(): show = steps[activeIndex]?.el.dataset.trigger
+	// === 'prediction-map'. Gleicher stepDefs-statt-dataset-Grund wie überall.
+	const showPredictionMap = $derived(stepDefs[activeIndex]?.trigger === 'prediction-map');
+
+	// Aus dem Exit-Button-Handler ganz unten in main.js: findet den Step mit
+	// slide5_06_prediction_explain.md und scrollt dorthin zurück.
+	// stepDefs.findIndex(...) + steps[idx] ersetzt steps.find(s =>
+	// s.el.dataset.md === ...), gleicher Grund wie überall sonst.
+	function scrollToPredictionExplain() {
+		const idx = stepDefs.findIndex((s) => s.md === 'slide5_06_prediction_explain.md');
+		const target = steps[idx];
+		if (!target) return;
+		window.scrollTo({ top: target.top - innerHeight * 0.25, behavior: 'smooth' });
+	}
 </script>
 
 <svelte:window bind:scrollY bind:innerWidth bind:innerHeight />
 
 <Map {camKey} {visibleLayers} bind:quadRect />
 <QuadOverlay rect={quadRect} visible={showQuad} />
+<SuitMap visible={showPredictionMap} onExit={scrollToPredictionExplain} />
 
 <!-- Entscheidungsbaum-Overlay: Inhalt kommt erst in Schritt 11, Container bleibt leer. -->
 <div class="overlay-model" class:active={modelVisible}></div>
+
+<!-- Legende für die Eignungskarte auf der Hintergrundkarte — erscheint, wenn
+     der Suitability-Layer aktiv ist. Deckungsgleiche Bedingung wie
+     showPredictionMap (SUIT_LAYER wird nur bei trigger === 'prediction-map'
+     sichtbar), daher optisch von SuitMap überdeckt, sobald diese offen ist
+     (z-index 2000 > 100) — 1:1 aus dem Original übernommen, nicht "behoben". -->
+<div id="suit-legend" class:hidden={!visibleLayers.has(SUIT_LAYER)}>
+	<div class="legend-gradient"></div>
+	<div class="legend-labels">
+		<span>0</span>
+		<span>{t('map_suitability_title')}</span>
+		<span>1</span>
+	</div>
+</div>
 
 <div id="media-root">
 	<div class="media-group" style="opacity: {groupOpacity}">
@@ -190,5 +222,54 @@
 		z-index: 10;
 		padding: 20vh 0 30vh;
 		pointer-events: none;
+	}
+
+	#suit-legend {
+		position: fixed;
+		bottom: 40px;
+		right: 18px;
+		z-index: 100;
+
+		width: 220px;
+		background: rgba(0, 0, 0, 0.55);
+		padding: 10px 12px;
+		border-radius: 6px;
+		backdrop-filter: blur(4px);
+		color: white;
+
+		opacity: 1;
+		transition: opacity 0.4s ease;
+	}
+
+	#suit-legend.hidden {
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.legend-gradient {
+		width: 100%;
+		height: 16px;
+		background: linear-gradient(
+			to right,
+			#440154,
+			#482878,
+			#3e4a89,
+			#31688e,
+			#26828e,
+			#1f9e89,
+			#35b779,
+			#6ece58,
+			#b5de2b,
+			#fde725
+		);
+		border-radius: 4px;
+		margin-bottom: 4px;
+	}
+
+	.legend-labels {
+		display: flex;
+		justify-content: space-between;
+		font-size: 13px;
+		color: #eee;
 	}
 </style>

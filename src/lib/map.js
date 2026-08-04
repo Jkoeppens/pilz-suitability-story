@@ -88,6 +88,26 @@ export function addMapLayers(map) {
 	});
 }
 
+// Aus initSuitMap(): die zweite, unabhängige MapLibre-Instanz für die
+// interaktive Eignungskarte. Eigene Source/Layer-IDs (suit-tiles/
+// suit-overlay statt suitability-src/SUIT_LAYER), keine visibility:'none' —
+// diese Karte existiert nur, um die Suitability-Tiles zu zeigen, daher immer
+// sichtbar sobald geladen.
+export function addSuitMapLayer(map) {
+	map.addSource('suit-tiles', {
+		type: 'raster',
+		tiles: [TILES_BASE],
+		tileSize: 256,
+		maxzoom: TILES_CONFIG.maxzoom
+	});
+	map.addLayer({
+		id: 'suit-overlay',
+		type: 'raster',
+		source: 'suit-tiles',
+		paint: { 'raster-opacity': 0.82 }
+	});
+}
+
 // Aus applyMapCamera(). Liefert nur den String-Schlüssel, nicht das
 // {center,zoom}-Objekt — als eigenständiges $derived-Primitive lässt sich
 // darüber die Verdopplung von easeTo()-Aufrufen vermeiden, die im Original
