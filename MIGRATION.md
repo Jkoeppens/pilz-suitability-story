@@ -368,3 +368,38 @@ später nicht wie ein Versehen liest.
   richtigen Element, keine Endlosschleife, und das korrekte Endergebnis
   (Step-Positionen nach Ankunft des Markdowns korrekt, Quad-Karte in
   Schritt 8 erscheint an der richtigen Stelle).
+
+- **`#app`-Wrapper weggelassen** (Schritt 12) — im Original umschließt
+  `<div id="app">` (`min-height: 100vh; position: relative;`) fast das
+  gesamte Markup. Geprüft: nichts in der Portierung hängt von einem
+  positionierten Vorfahren ab — `#map`, `#media-root`, `.overlay-model`,
+  `#prediction-map` sind `position: fixed` und unabhängig von jedem
+  Elternelement; `#intro` und `#scroll-root` setzen ihr eigenes
+  `position: relative; z-index: 10`, nicht relativ zu `#app`. Der Wrapper
+  ist damit ohne Funktion — nicht übernommen.
+
+- **Toter `.legend`/`.legend-title`/`.legend-sub`/`.legend-bar`/
+  `.legend-ndvi`/`.legend-ndwi`/`.legend-moran`/`.legend-geary`-Block aus
+  style.css nicht übernommen** (Schritt 12) — geprüft: keine Stelle in
+  `index.html` oder `main.js` referenziert diese Klassen. Ersetzt durch
+  `.quad-label`/`.ql-*`, das mit den Eck-Legenden der 2×2-Rasterkarte
+  bereits in Schritt 8 übernommen wurde.
+
+## 6. Bekannte UX-Mängel des Originals (nicht behoben)
+
+Verhalten, das 1:1 aus dem Original übernommen wurde, aber beim
+empirischen Vergleich als möglicherweise unbeabsichtigt auffiel. Wird
+hier nur dokumentiert, nicht automatisch korrigiert — Entscheidung
+darüber steht noch aus.
+
+- **Sprachumschalter scrollt aus dem Viewport** — `#lang-switch` sitzt
+  `position: absolute` innerhalb von `.intro-block` (im Original per
+  `mountLangSwitchIntoIntro()` dorthin verschoben, hier direkt als
+  `<LangSwitch>` in `Intro.svelte` gerendert). Da `.intro-block` selbst
+  normal im Dokumentfluss steht, scrollt der Umschalter mit dem
+  Intro-Text weg, statt dauerhaft erreichbar zu bleiben. Empirisch auf
+  `:3000` (Original) geprüft: bei `scrollY: 1000` steht `#lang-switch`
+  bei `top: -831px`, also vollständig außerhalb des Viewports — das
+  Original hat exakt dasselbe Verhalten, es ist keine Regression der
+  Portierung. Ob das so bleiben oder der Umschalter z. B. `position:
+  fixed` werden soll, ist eine separate Entscheidung.

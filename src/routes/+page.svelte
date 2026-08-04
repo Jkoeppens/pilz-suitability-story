@@ -1,7 +1,7 @@
 <script>
 	import { steps as stepDefs } from '$lib/steps.js';
 	import Step from '$lib/Step.svelte';
-	import LangSwitch from '$lib/LangSwitch.svelte';
+	import Intro from '$lib/Intro.svelte';
 	import Map from '$lib/Map.svelte';
 	import QuadOverlay from '$lib/QuadOverlay.svelte';
 	import SuitMap from '$lib/SuitMap.svelte';
@@ -150,13 +150,22 @@
 	</div>
 </div>
 
-<LangSwitch />
+<Intro />
 
 <main id="scroll-root" bind:this={scrollRootEl}>
 	{#each stepDefs as step, i}
 		<Step {step} bind:el={stepEls[i]} active={i === activeIndex} margin={stepMargins[i]} />
 	{/each}
 </main>
+
+<!-- Aus index.html: fixierter Footer unten rechts (Kontakt + Repo-Link),
+     dort als Inline-Styles am <div>, hier als scoped Klasse #site-footer. -->
+<div id="site-footer">
+	Jakob Koppermann · jakob.koppermann@gmail.com · Datenpipeline:
+	<a href="https://github.com/Jkoeppens/inat_habitat_modeling" target="_blank" rel="noopener">
+		github.com/Jkoeppens/inat_habitat_modeling
+	</a>
+</div>
 
 <style>
 	#media-root {
@@ -249,6 +258,24 @@
 		pointer-events: auto;
 		z-index: 10;
 		filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.25));
+	}
+
+	#site-footer {
+		position: fixed;
+		bottom: 12px;
+		right: 12px;
+		z-index: 2001;
+		font-size: 11px;
+		background: rgba(0, 0, 0, 0.55);
+		color: #fff;
+		padding: 4px 8px;
+		border-radius: 4px;
+		pointer-events: auto;
+	}
+
+	#site-footer a {
+		color: #fff;
+		text-decoration: underline;
 	}
 
 	#scroll-root {
