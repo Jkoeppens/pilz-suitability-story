@@ -93,3 +93,97 @@ export function getActiveIndex(scrollCenter, steps) {
 	});
 	return bestIndex;
 }
+
+// Aus applyStageFade(). Original setzt zuerst ALLE .media-group-Elemente auf
+// opacity 0 und danach nur das/die gerade relevanten wieder hoch — das
+// Zurücksetzen entfällt hier, weil jede Aufrufstelle ihre Opacity als
+// $derived aus scrollCenter neu berechnet statt einen alten Wert stehen zu
+// lassen. Die Fallunterscheidung selbst ist 1:1 aus main.js übernommen.
+export function getGroupOpacity(stage, scrollCenter, transitions) {
+	if (!transitions.length) {
+		return stage === 1 ? 1 : 0;
+	}
+
+	const first = transitions[0];
+	if (scrollCenter <= first.start) {
+		return stage === first.from ? 1 : 0;
+	}
+
+	for (const t of transitions) {
+		if (scrollCenter >= t.start && scrollCenter <= t.end) {
+			const p = (scrollCenter - t.start) / (t.end - t.start);
+			if (stage === t.from) return 1 - p;
+			if (stage === t.to) return p;
+			return 0;
+		}
+		if (scrollCenter < t.start) {
+			return stage === t.from ? 1 : 0;
+		}
+	}
+
+	// hinter allen Übergängen — Stage 1 ist vollständig ausgeblendet
+	return 0;
+}
+
+// Aus applyOverlays(). In main.js las die Zonen-Ermittlung s.el.dataset.overlay
+// direkt vom DOM; hier kommt der overlay-String aus stepDefs[i].overlay (siehe
+// computeLayout()-Kommentar oben zum selben Wechsel bei .stage). Die Formeln
+// (0.25-Offset, fadeLen, Zonen-Grenzen) sind unverändert.
+export function computeOverlayZones(stepDefs, steps, transitions, innerHeight) {
+	const zones = {};
+
+	steps.forEach((s, i) => {
+		const overlays = (stepDefs[i].overlay || '').split(' ').filter(Boolean);
+		if (!overlays.length) return;
+
+		const start = s.center + innerHeight * 0.25;
+		let end = start;
+		const t = transitions.find((tr) => tr.from === s.stage);
+		if (t) end = Math.max(end, t.end);
+		else end = Infinity;
+
+		overlays.forEach((cls) => {
+			(zones[cls] ||= []).push({ start, end });
+		});
+	});
+
+	return zones;
+}
+
+export function getOverlayOpacity(cls, scrollCenter, zones, innerHeight) {
+	const clsZones = zones[cls];
+	if (!clsZones || !clsZones.length) return 0;
+
+	let opacity = 0;
+	clsZones.forEach(({ start, end }) => {
+		const fadeLen = innerHeight * 0.25;
+		const fadeEnd = start + fadeLen;
+		if (scrollCenter >= start && scrollCenter <= fadeEnd) {
+			opacity = Math.max(opacity, (scrollCenter - start) / fadeLen);
+		}
+		if (scrollCenter > fadeEnd && scrollCenter <= end) opacity = 1;
+	});
+	return opacity;
+}
+
+// Aus applyHtmlOverlay(). stepDefs[i].model ersetzt s.el.dataset.model,
+// gleicher Grund wie bei .stage/.overlay oben.
+export function computeModelZones(stepDefs, steps, transitions, innerHeight) {
+	const zones = [];
+
+	steps.forEach((s, i) => {
+		if (!stepDefs[i].model) return;
+		const start = s.center + innerHeight * 0.25;
+		let end = start;
+		const t = transitions.find((tr) => tr.from === s.stage);
+		if (t) end = Math.max(end, t.end);
+		else end = Infinity;
+		zones.push({ start, end });
+	});
+
+	return zones;
+}
+
+export function isModelVisible(scrollCenter, zones) {
+	return zones.some(({ start, end }) => scrollCenter >= start && scrollCenter <= end);
+}
