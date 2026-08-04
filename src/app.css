@@ -1,0 +1,13 @@
+/* Aus ../pilz-suitability-story/style.css, Abschnitt GLOBAL.
+   Nur html/body — keine Karten- oder Overlay-Styles. */
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+	overflow-x: hidden;
+
+	font-family: 'IBM Plex Sans', sans-serif;
+	background: #000;
+	color: #fff;
+}
