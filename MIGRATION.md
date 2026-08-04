@@ -266,3 +266,52 @@ Für jeden Wert: aus welchem Zustand, über welche Funktion.
   (`if (quadOverlays) return;`, main.js:183) und danach wiederverwendet.
   Ist das ein Zustandsflag („wurde initialisiert“) oder ein reiner Cache
   innerhalb der Zeichenroutine?
+
+---
+
+## 5. Bewusste Abweichungen vom Original
+
+Stellen, an denen die Svelte-Portierung nicht 1:1 dem Verhalten oder
+Aufbau von `main.js`/`style.css` folgt — mit Begründung, damit sich das
+später nicht wie ein Versehen liest.
+
+- **`untrack()` in der Step-Vermessung** (`src/routes/+page.svelte`,
+  Commit „Schritt 6: Stage-Fades und Overlays“) — der `$effect`, der
+  `autoSpacing()`/`computeLayout()` aufruft, liest `stepEls` über
+  `untrack(() => stepEls)` statt es direkt zu lesen. Grund: Ohne
+  `untrack()` entsteht ein Kreis — der Effekt schreibt `steps`,
+  `activeIndex` (`$derived` aus `steps`) ändert sich, jede `Step`-
+  Komponente deren `active`-Prop sich ändert re-rendert, `bind:this`
+  darin schreibt `stepEls[i]` erneut, was den Effekt erneut auslöst,
+  obwohl sich an den tatsächlichen DOM-Knoten nichts geändert hat. In der
+  Praxis lief das als Endlosschleife (mehrere tausend Durchläufe pro
+  Sekunde, siehe Commit-Testprotokoll). Die Annahme dahinter, die
+  `untrack()` erst korrekt macht: die Element-Referenzen in `stepEls`
+  werden einmalig beim Mount jeder `Step`-Komponente gesetzt und ändern
+  sich danach nie wieder — nur `innerWidth`/`innerHeight` (Resize) sollen
+  eine Neuvermessung auslösen, nicht ein erneutes, wertgleiches Schreiben
+  von `stepEls`. Hält diese Annahme nicht mehr (z. B. weil Steps künftig
+  bedingt gerendert/neu gemountet werden), muss die Messlogik neu
+  durchdacht werden, nicht einfach `untrack()` entfernt werden.
+
+- **`#scroll-root { z-index: 10 }`** (`src/routes/+page.svelte`, Commit
+  „Schritt 6“) — im Original folgt diese Regel aus `style.css`
+  automatisch mit, weil `#scroll-root` von Anfang an Teil des Markups
+  war. In der Portierung existierte der Text-Container bis Schritt 6 ohne
+  eigenen Stacking-Context; er musste jetzt explizit ergänzt werden, weil
+  sonst das neu hinzugekommene `#media-root` (`z-index: 1`, `position:
+  fixed`, volle Bildschirmfläche) die Textboxen verdeckt hätte. Keine
+  Änderung an einer Formel, sondern eine bislang fehlende Voraussetzung,
+  die durch das Hinzufügen von `#media-root` erst nötig wurde.
+
+- **Weggelassenes `.hidden` auf `.overlay-model`** — das Original-Markup
+  trägt `<div class="overlay-model hidden">`, und `applyHtmlOverlay()`
+  toggelt zusätzlich zu `style.opacity`/`style.pointerEvents` auch die
+  Klassen `active`/`hidden` (main.js:868–871). Geprüft: Es existiert in
+  `style.css` keine Regel für `.overlay-model.hidden` oder ein
+  eigenständiges `.hidden` (nur `#quad-root.hidden` und
+  `#suit-legend.hidden`, beide auf andere IDs beschränkt). Die Klasse ist
+  im Original toter Code ohne visuellen Effekt — `.overlay-model`
+  (Basis: `opacity: 0`) und `.overlay-model.active` (`opacity: 1`) regeln
+  die Sichtbarkeit bereits vollständig. Die Portierung setzt daher nur
+  `class:active`, ohne `.hidden` und ohne die redundanten Inline-Styles.

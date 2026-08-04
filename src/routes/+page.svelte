@@ -2,6 +2,7 @@
 	import { steps as stepDefs } from '$lib/steps.js';
 	import Step from '$lib/Step.svelte';
 	import LangSwitch from '$lib/LangSwitch.svelte';
+	import Map from '$lib/Map.svelte';
 	import { untrack } from 'svelte';
 	import {
 		autoSpacing,
@@ -14,6 +15,7 @@
 		computeModelZones,
 		isModelVisible
 	} from '$lib/scroll.js';
+	import { getCameraKey, getVisibleLayers } from '$lib/map.js';
 
 	let scrollY = $state(0);
 	let innerWidth = $state(0);
@@ -62,9 +64,14 @@
 
 	const modelZones = $derived(computeModelZones(stepDefs, steps, transitions, innerHeight));
 	const modelVisible = $derived(isModelVisible(scrollCenter, modelZones));
+
+	const camKey = $derived(getCameraKey(scrollCenter, activeIndex, stepDefs, steps, transitions));
+	const visibleLayers = $derived(getVisibleLayers(activeIndex, stepDefs, steps));
 </script>
 
 <svelte:window bind:scrollY bind:innerWidth bind:innerHeight />
+
+<Map {camKey} {visibleLayers} />
 
 <!-- Entscheidungsbaum-Overlay: Inhalt kommt erst in Schritt 11, Container bleibt leer. -->
 <div class="overlay-model" class:active={modelVisible}></div>
