@@ -2,7 +2,7 @@
 	import { marked } from 'marked';
 	import { lang } from './lang.svelte.js';
 
-	let { step } = $props();
+	let { step, el = $bindable(null), active = false } = $props();
 
 	let html = $state('');
 
@@ -26,9 +26,11 @@
 </script>
 
 <article
+	bind:this={el}
 	class="step"
 	class:step--invisible={step.invisible}
 	class:step--spacer={step.spacer}
+	class:step--active={active}
 	style={step.style}
 >
 	{#if html}
