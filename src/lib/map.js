@@ -1,9 +1,16 @@
 // Aus ../pilz-suitability-story/main.js: Abschnitt MAP CONFIG (STAGE_CAMERAS,
 // STEP_CAMERA_OVERRIDES, OVERLAY_TO_LAYERS, RASTER_LAYERS/POINT_LAYERS/...),
-// addMapLayers() — hier nur Raster- + Suitability-Layer, die Punkt-Layer
+// addMapLayers() — hier nur der Suitability-Layer, die Punkt-Layer
 // (parasol/meisen, halo, ripple) kommen erst in einem späteren Schritt —,
 // sowie die reinen Berechnungen aus applyMapCamera() und der
 // visible-Ermittlung in applyMapLayers().
+//
+// Die vier Raster-Layer (ndvi/ndwi/moran/geary) aus dem Original wurden
+// entfernt: sie waren nie sichtbar (nichts in OVERLAY_TO_LAYERS zeigt auf
+// sie, siehe MIGRATION.md), und QuadOverlay zeigt dieselben PNGs bereits
+// als CSS-positionierte <img>. RASTER_LAYERS bleibt als Konstante stehen
+// (Teil der ursprünglichen main.js-Layer-Vocabular), ist aber in
+// LAYERS_THIS_STEP bewusst nicht mehr enthalten.
 //
 // IS_LOCAL/TILES_CONFIG sind 1:1 aus main.js: ein Hostname-Check, kein
 // Build-Modus-Check, damit sich lokale Kachel-Server (tiles_suit/) genau wie
@@ -56,43 +63,16 @@ export const ALL_LAYERS = [...HALO_LAYERS, ...RIPPLE_LAYERS, ...POINT_LAYERS, ..
 
 // Von addMapLayers() in diesem Schritt tatsächlich angelegte Layer — nur
 // diese dürfen wir per setLayoutProperty ansprechen, nicht ALL_LAYERS.
-export const LAYERS_THIS_STEP = [...RASTER_LAYERS, SUIT_LAYER];
-
-// Bounding Box gemeinsam für alle Raster-Layer (WGS84)
-const RASTER_COORDS = [
-	[12.647, 53.0203], // NW
-	[14.316, 53.0203], // NE
-	[14.316, 51.9793], // SE
-	[12.647, 51.9793] // SW
-];
+// RASTER_LAYERS sind hier bewusst ausgeschlossen: ndvi-/ndwi-/moran-/
+// geary-layer werden nicht mehr angelegt (siehe addMapLayers() unten) —
+// dieselben PNGs zeigt QuadOverlay als CSS-positionierte <img>.
+export const LAYERS_THIS_STEP = [SUIT_LAYER];
 
 // Ausdehnung der Quad-Karte (WGS84), gemeinsam mit den Raster-Layern
 export const IMG_NW = [12.647, 53.0203];
 export const IMG_SE = [14.316, 51.9793];
 
 export function addMapLayers(map) {
-	const imageLayers = [
-		{ id: 'ndvi-layer', src: 'ndvi-src', file: '/maps/ndvi_colored.png' },
-		{ id: 'ndwi-layer', src: 'ndwi-src', file: '/maps/ndwi_colored.png' },
-		{ id: 'moran-layer', src: 'moran-src', file: '/maps/moran_colored.png' },
-		{ id: 'geary-layer', src: 'geary-src', file: '/maps/geary_colored.png' }
-	];
-
-	imageLayers.forEach(({ id, src, file }) => {
-		map.addSource(src, {
-			type: 'image',
-			url: file,
-			coordinates: RASTER_COORDS
-		});
-		map.addLayer({
-			id,
-			type: 'raster',
-			source: src,
-			layout: { visibility: 'none' },
-			paint: { 'raster-opacity': 0.85 }
-		});
-	});
-
 	map.addSource('suitability-src', {
 		type: 'raster',
 		tiles: [TILES_BASE],
