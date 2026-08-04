@@ -1,5 +1,6 @@
 <script>
 	import { marked } from 'marked';
+	import { lang } from './lang.svelte.js';
 
 	let { step } = $props();
 
@@ -10,8 +11,9 @@
 			html = '';
 			return;
 		}
+		const currentLang = lang.current;
 		let cancelled = false;
-		fetch(`/text/de/${step.md}`)
+		fetch(`/text/${currentLang}/${step.md}`)
 			.then((res) => res.text())
 			.then((text) => {
 				if (!cancelled) html = marked.parse(text);
