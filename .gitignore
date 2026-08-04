@@ -23,3 +23,8 @@ output/
 
 # Node modules (falls später JS tools)
 node_modules/
+
+# SvelteKit
+.svelte-kit/
+/build
+vite.config.js.timestamp-*
