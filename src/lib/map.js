@@ -66,6 +66,10 @@ const RASTER_COORDS = [
 	[12.647, 51.9793] // SW
 ];
 
+// Ausdehnung der Quad-Karte (WGS84), gemeinsam mit den Raster-Layern
+export const IMG_NW = [12.647, 53.0203];
+export const IMG_SE = [14.316, 51.9793];
+
 export function addMapLayers(map) {
 	const imageLayers = [
 		{ id: 'ndvi-layer', src: 'ndvi-src', file: '/maps/ndvi_colored.png' },

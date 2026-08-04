@@ -3,6 +3,7 @@
 	import Step from '$lib/Step.svelte';
 	import LangSwitch from '$lib/LangSwitch.svelte';
 	import Map from '$lib/Map.svelte';
+	import QuadOverlay from '$lib/QuadOverlay.svelte';
 	import { untrack } from 'svelte';
 	import {
 		autoSpacing,
@@ -85,11 +86,18 @@
 
 	const camKey = $derived(getCameraKey(scrollCenter, activeIndex, stepDefs, steps, transitions));
 	const visibleLayers = $derived(getVisibleLayers(activeIndex, stepDefs, steps));
+
+	// Aus dem showQuad-Teil von applyMapLayers(): stepDefs[activeIndex].trigger
+	// ersetzt activeStep.el.dataset.trigger, gleicher Grund wie überall sonst.
+	const showQuad = $derived(currentStage === 5 && stepDefs[activeIndex]?.trigger !== 'prediction-map');
+
+	let quadRect = $state(null);
 </script>
 
 <svelte:window bind:scrollY bind:innerWidth bind:innerHeight />
 
-<Map {camKey} {visibleLayers} />
+<Map {camKey} {visibleLayers} bind:quadRect />
+<QuadOverlay rect={quadRect} visible={showQuad} />
 
 <!-- Entscheidungsbaum-Overlay: Inhalt kommt erst in Schritt 11, Container bleibt leer. -->
 <div class="overlay-model" class:active={modelVisible}></div>

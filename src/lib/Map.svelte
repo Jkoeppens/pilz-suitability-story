@@ -1,17 +1,34 @@
 <script>
 	import maplibregl from 'maplibre-gl';
 	import 'maplibre-gl/dist/maplibre-gl.css';
-	import { MAP_STYLE_URL, STAGE_CAMERAS, LAYERS_THIS_STEP, addMapLayers, getCameraForKey } from './map.js';
+	import {
+		MAP_STYLE_URL,
+		STAGE_CAMERAS,
+		LAYERS_THIS_STEP,
+		IMG_NW,
+		IMG_SE,
+		addMapLayers,
+		getCameraForKey
+	} from './map.js';
 
 	// MapLibre verwaltet sein eigenes DOM (Canvas, Controls) innerhalb von
 	// #map — Svelte rendert dort nie eigene Kinder hinein, es gibt also
 	// nichts zu reconcilen. Abgeleitete Werte kommen als Props herein und
-	// fließen unten per $effect imperativ in die Instanz.
-	let { camKey, visibleLayers } = $props();
+	// fließen unten per $effect imperativ in die Instanz. quadRect fließt
+	// umgekehrt hinaus: eine reine Projektion des Kartenzustands, die
+	// QuadOverlay konsumiert, ohne dass Map.svelte selbst etwas über Quad
+	// weiß.
+	let { camKey, visibleLayers, quadRect = $bindable(null) } = $props();
 
 	let container;
 	let map;
 	let ready = $state(false);
+
+	function updateQuadRect() {
+		const nw = map.project(IMG_NW);
+		const se = map.project(IMG_SE);
+		quadRect = { left: nw.x, top: nw.y, width: se.x - nw.x, height: se.y - nw.y };
+	}
 
 	$effect(() => {
 		map = new maplibregl.Map({
@@ -28,7 +45,10 @@
 		map.on('load', () => {
 			addMapLayers(map);
 			ready = true;
+			updateQuadRect();
 		});
+
+		map.on('move', updateQuadRect);
 
 		return () => map.remove();
 	});
