@@ -17,9 +17,11 @@
 // erst als MapLibre-Layer angelegt; das GeoJSON wird ausschließlich für die
 // Canvas-Zeichnung geladen.
 
+import { base } from '$app/paths';
+
 export const POINT_ANIM_CFG = {
-	'parasol-src': { url: '/maps/Parasolfunde.geojson', count: 0 },
-	'meisen-src': { url: '/maps/Meisenfunde.geojson', count: 0 }
+	'parasol-src': { url: `${base}/maps/Parasolfunde.geojson`, count: 0 },
+	'meisen-src': { url: `${base}/maps/Meisenfunde.geojson`, count: 0 }
 };
 
 // Geladene GeoJSON-Koordinaten je Quelle

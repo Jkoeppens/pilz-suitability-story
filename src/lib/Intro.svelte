@@ -10,6 +10,7 @@
 	// Grund wie überall sonst: kein Element existiert erst unabhängig, um es
 	// danach per JS zu verschieben.
 	import { marked } from 'marked';
+	import { base } from '$app/paths';
 	import { lang } from './lang.svelte.js';
 	import LangSwitch from './LangSwitch.svelte';
 
@@ -18,7 +19,7 @@
 	$effect(() => {
 		const currentLang = lang.current;
 		let cancelled = false;
-		fetch(`/text/${currentLang}/slide1_01_intro.md`)
+		fetch(`${base}/text/${currentLang}/slide1_01_intro.md`)
 			.then((res) => res.text())
 			.then((text) => {
 				if (!cancelled) html = marked.parse(text);

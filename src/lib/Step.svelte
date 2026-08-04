@@ -1,5 +1,6 @@
 <script>
 	import { marked } from 'marked';
+	import { base } from '$app/paths';
 	import { lang } from './lang.svelte.js';
 
 	let { step, el = $bindable(null), active = false, margin = 0 } = $props();
@@ -13,7 +14,7 @@
 		}
 		const currentLang = lang.current;
 		let cancelled = false;
-		fetch(`/text/${currentLang}/${step.md}`)
+		fetch(`${base}/text/${currentLang}/${step.md}`)
 			.then((res) => res.text())
 			.then((text) => {
 				if (!cancelled) html = marked.parse(text);

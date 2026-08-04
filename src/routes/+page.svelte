@@ -19,6 +19,7 @@
 	} from '$lib/scroll.js';
 	import { getCameraKey, getVisibleLayers, SUIT_LAYER } from '$lib/map.js';
 	import { t } from '$lib/i18n.js';
+	import { base } from '$app/paths';
 
 	let scrollY = $state(0);
 	let innerWidth = $state(0);
@@ -125,7 +126,7 @@
      iframe eingebunden, nicht nach Svelte portiert. -->
 <div class="overlay-model" class:active={modelVisible}>
 	<div class="overlay-model-inner">
-		<iframe src="/viz/index.html" class="model-frame" loading="lazy"></iframe>
+		<iframe src="{base}/viz/index.html" class="model-frame" loading="lazy"></iframe>
 	</div>
 </div>
 
@@ -145,8 +146,8 @@
 
 <div id="media-root">
 	<div class="media-group" style="opacity: {groupOpacity}">
-		<img src="/img/Wald.png" class="bg-img" alt="" />
-		<img src="/img/Pilz.png" class="overlay-img overlay-pilz" style="opacity: {pilzOpacity}" alt="" />
+		<img src="{base}/img/Wald.png" class="bg-img" alt="" />
+		<img src="{base}/img/Pilz.png" class="overlay-img overlay-pilz" style="opacity: {pilzOpacity}" alt="" />
 	</div>
 </div>
 

@@ -15,6 +15,7 @@
 	// warum das Original #quad-root zur Laufzeit in map.getCanvasContainer()
 	// verschoben hat (map.project() liefert Pixel relativ zum fixed
 	// Map-Viewport). z-index bleibt bei 2, identisch zum Original.
+	import { base } from '$app/paths';
 	import { t } from './i18n.js';
 
 	let { rect, visible } = $props();
@@ -27,16 +28,16 @@
 
 <div id="quad-root" class:hidden={!visible}>
 	<div id="quad-tl" class="quad-cell">
-		<img src="/maps/moran_colored.png" style="left:{left}px; top:{top}px; width:{width}px; height:{height}px" alt="" />
+		<img src="{base}/maps/moran_colored.png" style="left:{left}px; top:{top}px; width:{width}px; height:{height}px" alt="" />
 	</div>
 	<div id="quad-tr" class="quad-cell">
-		<img src="/maps/geary_colored.png" style="left:{left}px; top:{top}px; width:{width}px; height:{height}px" alt="" />
+		<img src="{base}/maps/geary_colored.png" style="left:{left}px; top:{top}px; width:{width}px; height:{height}px" alt="" />
 	</div>
 	<div id="quad-bl" class="quad-cell">
-		<img src="/maps/ndwi_colored.png" style="left:{left}px; top:{top}px; width:{width}px; height:{height}px" alt="" />
+		<img src="{base}/maps/ndwi_colored.png" style="left:{left}px; top:{top}px; width:{width}px; height:{height}px" alt="" />
 	</div>
 	<div id="quad-br" class="quad-cell">
-		<img src="/maps/ndvi_colored.png" style="left:{left}px; top:{top}px; width:{width}px; height:{height}px" alt="" />
+		<img src="{base}/maps/ndvi_colored.png" style="left:{left}px; top:{top}px; width:{width}px; height:{height}px" alt="" />
 	</div>
 
 	<div class="quad-label tl">
