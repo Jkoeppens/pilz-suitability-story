@@ -2,19 +2,19 @@
 // getCurrentStage() und die Index-Ermittlung aus applyStepVisibility()
 // (das DOM-classList.add/remove daraus wird zur Klassenbindung in Step.svelte).
 //
-// Die Formeln sind 1:1 übernommen — auch der bekannte Bug bei
-// EXTRA_STAGE_TAIL (siehe MIGRATION.md, Abschnitt UNKLAR): wird beim
-// ersten Laden einmalig aus der Fensterhöhe berechnet und danach NIE
-// wieder aktualisiert, auch nicht bei Resize. Absichtlich nicht repariert.
+// Die Formeln sind 1:1 übernommen — mit einer bewussten Abweichung vom
+// Original: EXTRA_STAGE_TAIL wurde im alten main.js einmalig beim Laden aus
+// window.innerHeight berechnet und bei Resize nie neu (siehe MIGRATION.md,
+// Abschnitt UNKLAR). Hier wird es wie FIXED_FADE_LENGTH aus derselben,
+// jeweils aktuellen innerHeight in computeLayout() berechnet — der Bug ist
+// damit behoben.
 //
-// Eine Anpassung gegenüber main.js: die Stage-Nummer kommt aus stepDefs[i].stage
-// (dem steps.js-Array) statt aus el.dataset.stage — wir schreiben data-stage
-// gar nicht ins Markup, siehe Step.svelte/steps.js aus Schritt 3.
-
-import { browser } from '$app/environment';
+// Eine weitere Anpassung gegenüber main.js: die Stage-Nummer kommt aus
+// stepDefs[i].stage (dem steps.js-Array) statt aus el.dataset.stage — wir
+// schreiben data-stage gar nicht ins Markup, siehe Step.svelte/steps.js aus
+// Schritt 3.
 
 export const STAGE_FADE_PORTION = 0.35;
-export const EXTRA_STAGE_TAIL = browser ? window.innerHeight * 0.5 : 0;
 
 export function autoSpacing(stepDefs, stepEls) {
 	const byStage = {};
@@ -42,6 +42,7 @@ export function computeLayout(stepDefs, stepEls, innerHeight) {
 	}));
 
 	const FIXED_FADE_LENGTH = innerHeight * 1.2;
+	const EXTRA_STAGE_TAIL = innerHeight * 0.5;
 	const rawTransitions = [];
 
 	for (let i = 0; i < steps.length - 1; i++) {

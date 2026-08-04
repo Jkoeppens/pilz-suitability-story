@@ -240,12 +240,20 @@ Für jeden Wert: aus welchem Zustand, über welche Funktion.
   Berechnungen, vermittelt über die Browser-Layout-Engine — unklar, ob
   sich das als reine Ableitung fassen lässt.
 
-- **`EXTRA_STAGE_TAIL`** (main.js:124) wird einmalig beim Modul-Laden aus
+- ~~**`EXTRA_STAGE_TAIL`** (main.js:124) wird einmalig beim Modul-Laden aus
   `window.innerHeight` berechnet und bei `resize` **nicht** neu berechnet
   — im Unterschied zu `FIXED_FADE_LENGTH` in `computeLayout()`
   (main.js:676), die bei jedem Aufruf neu aus `innerHeight` berechnet
   wird. Ob das beabsichtigt ist oder ein Bug, kann ich aus dem Code allein
-  nicht beurteilen.
+  nicht beurteilen.~~
+
+  **Behoben** (`src/lib/scroll.js`, Commit nach „Schritt 5: Scroll-Zustand“):
+  In der Svelte-Portierung wird `EXTRA_STAGE_TAIL` wie `FIXED_FADE_LENGTH`
+  direkt in `computeLayout()` aus der jeweils aktuellen `innerHeight`
+  berechnet, statt einmalig eingefroren zu werden. Das war zunächst 1:1
+  aus `main.js` übernommen worden (siehe Commit „Schritt 5“); ab diesem
+  Commit ist es eine **bewusste Abweichung vom Original** — der Bug ist
+  behoben, nicht mehr Verhaltensparität mit `main.js`.
 
 - **`currentLang`-Initialisierung** (`getInitialLang()`, main.js:29–35) —
   Reihenfolge URL-Param → localStorage → Browsersprache. Jede Änderung
