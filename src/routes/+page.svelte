@@ -120,8 +120,14 @@
 <QuadOverlay rect={quadRect} visible={showQuad} />
 <SuitMap visible={showPredictionMap} onExit={scrollToPredictionExplain} />
 
-<!-- Entscheidungsbaum-Overlay: Inhalt kommt erst in Schritt 11, Container bleibt leer. -->
-<div class="overlay-model" class:active={modelVisible}></div>
+<!-- Entscheidungsbaum-Overlay: viz/ ist eine eigenständige Anwendung (D3 vom
+     CDN, eigenes index.html/style.css/main.js) und wird wie im Original als
+     iframe eingebunden, nicht nach Svelte portiert. -->
+<div class="overlay-model" class:active={modelVisible}>
+	<div class="overlay-model-inner">
+		<iframe src="/viz/index.html" class="model-frame" loading="lazy"></iframe>
+	</div>
+</div>
 
 <!-- Legende für die Eignungskarte auf der Hintergrundkarte — erscheint, wenn
      der Suitability-Layer aktiv ist. Deckungsgleiche Bedingung wie
@@ -215,6 +221,34 @@
 	.overlay-model.active {
 		opacity: 1;
 		pointer-events: auto;
+	}
+
+	.overlay-model-inner {
+		background: rgba(245, 244, 238, 0.94);
+		padding: 2rem;
+
+		box-shadow:
+			0 12px 28px rgba(0, 0, 0, 0.18),
+			0 4px 10px rgba(0, 0, 0, 0.12);
+
+		border-radius: 0;
+
+		display: flex;
+		justify-content: center;
+		align-items: center;
+
+		max-width: 98vw;
+		max-height: 90vh;
+	}
+
+	.model-frame {
+		width: min(98vw, 1400px);
+		height: 85vh;
+		border: none;
+		background: transparent;
+		pointer-events: auto;
+		z-index: 10;
+		filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.25));
 	}
 
 	#scroll-root {
